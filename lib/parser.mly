@@ -24,9 +24,9 @@ let find_type_variable name =
     v
 
 let binop op arg1 arg2 =
-  Core.AppE(Core.AppE(Core.Longident(IdentP(Ident.create op)), arg1), arg2)
+  Core.AppE(AppE(Longident(IdentP(Ident.create op)), arg1), arg2)
 let ternop op arg1 arg2 arg3 =
-  Core.AppE(Core.AppE(Core.AppE(Core.Longident(IdentP(Ident.create op)), arg1), arg2), arg3)
+  Core.AppE(AppE(AppE(Longident(IdentP(Ident.create op)), arg1), arg2), arg3)
 
 %}
 
