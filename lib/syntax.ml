@@ -29,16 +29,16 @@ module Ident =
     end
 
 type path =
-    | Pident of Ident.t             (* identifier *)
-    | Pdot of path * string         (* access to a module component *)
-    | Papp of path * path
+    | IdentP of Ident.t             (* identifier *)
+    | DotP of path * string         (* access to a module component *)
+    | AppP of path * path
 
 let rec path_equal p1 p2 =
     match (p1, p2) with
-    | (Pident id1, Pident id2) -> Ident.equal id1 id2
-    | (Pdot(r1, field1), Pdot(r2, field2)) ->
+    | (IdentP id1, IdentP id2) -> Ident.equal id1 id2
+    | (DotP(r1, field1), DotP(r2, field2)) ->
         path_equal r1 r2 && field1 = field2
-    | (Papp(fun1, arg1), Papp(fun2, arg2)) ->
+    | (AppP(fun1, arg1), AppP(fun2, arg2)) ->
         path_equal fun1 fun2 && path_equal arg1 arg2
     | (_, _) -> false
 
@@ -60,9 +60,9 @@ module Subst =
         let add = Ident.add
         let rec path p sub =
             match p with
-            | Pident id -> (try Ident.find id sub with Not_found -> p)
-            | Pdot(root, field) -> Pdot(path root sub, field)
-            | Papp(p1, p2) -> Papp(path p1 sub, path p2 sub)
+            | IdentP id -> (try Ident.find id sub with Not_found -> p)
+            | DotP(root, field) -> DotP(path root sub, field)
+            | AppP(p1, p2) -> AppP(path p1 sub, path p2 sub)
     end
 
 

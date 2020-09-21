@@ -40,15 +40,15 @@ module rec Env :
         let add_signature = List.fold_right add_spec
         let rec find path env =
             match path with
-            | Pident id ->
+            | IdentP id ->
                 Ident.find id env
-            | Pdot(root, field) ->
+            | DotP(root, field) ->
                 begin
                 match find_module root env with
                 | Mod.Signature sg -> find_field root field Subst.identity sg
                 | _ -> error "structure expected in dot access"
                 end
-            | Papp(p1, p2) ->
+            | AppP(p1, p2) ->
                 match (find_module p1 env, find_module p2 env) with
                 | (Mod.FunS(id, mty1, mty2), mty3) -> 
                     begin
@@ -69,12 +69,12 @@ module rec Env :
                 if Ident.name id = field
                 then Type(Mod.subst_typedecl decl subst)
                 else find_field p field
-                        (Subst.add id (Pdot(p, Ident.name id)) subst) rem
+                        (Subst.add id (DotP(p, Ident.name id)) subst) rem
             | Mod.ModS(id, mty) :: rem ->
                 if Ident.name id = field
                 then Module(Mod.subst_modtype mty subst)
                 else find_field p field
-                        (Subst.add id (Pdot(p, Ident.name id)) subst) rem
+                        (Subst.add id (DotP(p, Ident.name id)) subst) rem
         and find_value path env =
             match find path env with
             Value vty -> vty | _ -> error "value field expected"   
@@ -225,13 +225,13 @@ and CoreTyping :
             | vars -> subst_vars (List.map (fun v -> (v, unknown())) vars) vty.body
 
         let ident_arrow = Ident.create "->"
-        let path_arrow = Pident ident_arrow
+        let path_arrow = IdentP ident_arrow
         let arrow_type t1 t2 = Typeconstr(path_arrow, [t1;t2])
         let ident_int = Ident.create "int"
-        let path_int = Pident ident_int
+        let path_int = IdentP ident_int
         let int_type = Typeconstr(path_int, [])
         let ident_star = Ident.create "*"
-        let path_star = Pident ident_star
+        let path_star = IdentP ident_star
 
         let rec infer_type env = function
             | Constant n -> int_type
@@ -318,9 +318,9 @@ and CoreTyping :
         in the file modules.ml.extended *)
 
         let rec is_rooted_at id = function
-            | Pident id' -> Ident.equal id id'
-            | Pdot(p, s) -> is_rooted_at id p
-            | Papp(p1, p2) -> is_rooted_at id p1 && is_rooted_at id p2
+            | IdentP id' -> Ident.equal id id'
+            | DotP(p, s) -> is_rooted_at id p
+            | AppP(p1, p2) -> is_rooted_at id p1 && is_rooted_at id p2
 
         let rec nondep_type env id ty =
         match typerepr ty with
@@ -362,7 +362,7 @@ and ModTyping :
                 let ext_env = Env.add_signature sig1 env in
                 List.iter (specification_match ext_env subst) paired_components
             | (FunS(param1,arg1,res1), FunS(param2,arg2,res2)) ->
-                let subst = Subst.add param1 (Pident param2) Subst.identity in
+                let subst = Subst.add param1 (IdentP param2) Subst.identity in
                 let res1' = Mod.subst_modtype res1 subst in
                 modtype_match env arg2 arg1;
                 modtype_match (Env.add_module param2 arg2 env) res1' res2
@@ -388,7 +388,7 @@ and ModTyping :
                     | _ -> find_matching_component rem1 in
                 let (id1, id2, item1) = find_matching_component sig1 in
                 let (pairs, subst) = pair_signature_components sig1 rem2 in
-                ((item1, item2) :: pairs, Subst.add id2 (Pident id1) subst)
+                ((item1, item2) :: pairs, Subst.add id2 (IdentP id1) subst)
         and specification_match env subst = function
             | (ValS(_, vty1), ValS(_, vty2)) ->
                 if not (CT.valtype_match env vty1 (Core.subst_valtype vty2 subst))
@@ -407,7 +407,7 @@ and ModTyping :
                 CT.deftype_equiv env decl2.kind typ1 typ2
             | (None, Some typ2) ->
                 CT.deftype_equiv env decl2.kind
-                                (CT.deftype_of_path (Pident id) decl1.kind) typ2)
+                                (CT.deftype_of_path (IdentP id) decl1.kind) typ2)
 
         (* Section 2.10: Strengthening of module types *)
 
@@ -415,18 +415,18 @@ and ModTyping :
             match mty with
             | Signature sg -> Signature(List.map (strengthen_spec path) sg)
             | FunS(id, arg, res) ->
-                FunS(id, arg, strengthen_modtype (Papp(path, Pident id)) res)
+                FunS(id, arg, strengthen_modtype (AppP(path, IdentP id)) res)
         and strengthen_spec path item =
             match item with
             | ValS(id, vty) -> item
             | TypeS(id, decl) ->
                 let m = match decl.manifest with
                     | None -> Some(CT.deftype_of_path
-                                            (Pdot(path, Ident.name id)) decl.kind)
+                                            (DotP(path, Ident.name id)) decl.kind)
                     | Some ty -> Some ty 
                 in TypeS(id, {kind = decl.kind; manifest = m})
             | ModS(id, mty) ->
-                ModS(id, strengthen_modtype (Pdot(path, Ident.name id)) mty)
+                ModS(id, strengthen_modtype (DotP(path, Ident.name id)) mty)
 
         (* Section 5.5: Elimination of dependencies on a given identifier *)
 
@@ -624,8 +624,8 @@ module Scope : SCOPE =
             with Not_found -> error("unbound module " ^ Ident.name id)
         let rec scope_path scope_ident path sc =
             match path with
-            | Pident id -> Pident(scope_ident id sc)
-            | Pdot(root, field) -> Pdot(scope_path scope_module root sc, field)
+            | IdentP id -> IdentP(scope_ident id sc)
+            | DotP(root, field) -> DotP(scope_path scope_module root sc, field)
         let value_path = scope_path scope_value
         let type_path = scope_path scope_type
         let module_path = scope_path scope_module
@@ -713,11 +713,11 @@ module MLPrint =
         let reset_names () = variable_names := []
 
         let rec print_path = function
-            | Pident id ->
+            | IdentP id ->
                 print_string (Ident.name id)
-            | Pdot(root, field) ->
+            | DotP(root, field) ->
                 print_path root; print_string "."; print_string field
-            | Papp(p1, p2) ->
+            | AppP(p1, p2) ->
                 print_path p1; print_string "("; print_path p2; print_string ")"
 
         let rec print_simple_type ty =
@@ -754,7 +754,7 @@ module MLPrint =
         let print_deftype id dty =
         reset_names();
         print_simple_type
-            (Typeconstr(Pident id, List.map (fun v -> Var v) dty.params));
+            (Typeconstr(IdentP id, List.map (fun v -> Var v) dty.params));
         print_string " ="; print_space();
         print_simple_type dty.defbody
 
@@ -763,7 +763,7 @@ module MLPrint =
             | None ->
                 reset_names();
                 print_simple_type
-                    ((CoreTyping.deftype_of_path (Pident id) decl.kind).defbody)
+                    ((CoreTyping.deftype_of_path (IdentP id) decl.kind).defbody)
             | Some dty ->
                 print_deftype id dty
 

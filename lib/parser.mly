@@ -24,9 +24,9 @@ let find_type_variable name =
     v
 
 let binop op arg1 arg2 =
-  Core.AppE(Core.AppE(Core.Longident(Pident(Ident.create op)), arg1), arg2)
+  Core.AppE(Core.AppE(Core.Longident(IdentP(Ident.create op)), arg1), arg2)
 let ternop op arg1 arg2 arg3 =
-  Core.AppE(Core.AppE(Core.AppE(Core.Longident(Pident(Ident.create op)), arg1), arg2), arg3)
+  Core.AppE(Core.AppE(Core.AppE(Core.Longident(IdentP(Ident.create op)), arg1), arg2), arg3)
 
 %}
 
@@ -85,8 +85,8 @@ let ternop op arg1 arg2 arg3 =
 /* Paths */
 
 path:
-    IDENT           { Pident(Ident.create $1) }
-  | path DOT IDENT  { Pdot($1, $3) }
+    IDENT           { IdentP(Ident.create $1) }
+  | path DOT IDENT  { DotP($1, $3) }
 ;
 
 /* Value expressions for the core language */

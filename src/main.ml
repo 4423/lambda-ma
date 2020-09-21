@@ -18,7 +18,7 @@ let enter_val name ty =
 
 let _ =
   let ident_bool = Ident.create "bool" in
-  let path_bool = Pident ident_bool in
+  let path_bool = IdentP ident_bool in
   let bool_type = Core.Typeconstr(path_bool, []) in
   enter_type ident_arrow {Mod.kind = {Core.arity = 2}; Mod.manifest = None};
   enter_type ident_star {Mod.kind = {Core.arity = 2}; Mod.manifest = None};
