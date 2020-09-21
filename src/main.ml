@@ -1,6 +1,6 @@
 exception Quit of int
 
-
+open Syntax
 open Modules
 open CoreTyping
 

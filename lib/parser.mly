@@ -6,6 +6,7 @@
 
 %{
 
+open Syntax
 open Modules
 open CoreTyping
 
@@ -75,9 +76,9 @@ let ternop op arg1 arg2 arg3 =
 %right STAR SLASH
 
 %start implementation
-%type <Modules.Mod.mod_term> implementation
+%type <Syntax.Mod.mod_term> implementation
 %start phrase
-%type <Modules.Mod.definition> phrase
+%type <Syntax.Mod.definition> phrase
 
 %%
 
