@@ -205,8 +205,8 @@ typeinfo:
 modulexpr:
     path                              { Mod.Longident $1 }
   | STRUCT structure END              { Mod.Structure(List.rev $2) }
-  | FUNCTOR LPAREN IDENT COLON moduletype RPAREN modulexpr
-                                      { Mod.FunM(Ident.create $3, $5, $7) }
+  | FUNCTOR LPAREN IDENT COLON moduletype RPAREN ARROW modulexpr
+                                      { Mod.FunM(Ident.create $3, $5, $8) }
   | modulexpr LPAREN modulexpr RPAREN { Mod.AppM($1, $3) }
   | LPAREN modulexpr RPAREN           { $2 }
   | modulexpr COLON moduletype        { Mod.Constraint($1, $3) }
@@ -216,7 +216,7 @@ structure:
   | structure structure_item opt_semi { $2 :: $1 }
 ;
 structure_item:
-    VALUE IDENT valbind           { Mod.LetM(Ident.create $2, $3) }
+    LET IDENT valbind           { Mod.LetM(Ident.create $2, $3) }
   | TYPE typedef                  { let (id, kind, def) = $2 in
                                     Mod.TypeM(Ident.create id, kind, def) }
   | MODULE IDENT COLON moduletype EQUAL modulexpr
@@ -232,8 +232,8 @@ opt_semi:
 
 moduletype:
     SIG signature END               { Mod.Signature(List.rev $2) }
-  | FUNCTOR LPAREN IDENT COLON moduletype RPAREN moduletype
-                                    { Mod.FunS(Ident.create $3, $5, $7) }
+  | FUNCTOR LPAREN IDENT COLON moduletype RPAREN ARROW moduletype
+                                    { Mod.FunS(Ident.create $3, $5, $8) }
   | LPAREN moduletype RPAREN        { $2 }
 ;
 signature:

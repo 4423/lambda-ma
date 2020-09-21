@@ -780,7 +780,7 @@ module MLPrint =
                 open_hvbox 2;
                 print_string "functor("; print_string(Ident.name param);
                 print_string ": "; print_modtype arg; print_string ")";
-                print_space(); print_modtype body;
+                print_space(); print_string "-> "; print_modtype body;
                 close_box()
         and print_signature_item = function
             | ValS(id, vty) ->
