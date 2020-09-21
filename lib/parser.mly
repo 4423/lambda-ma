@@ -207,7 +207,7 @@ opt_semi:
 moduletype:
     SIG signature END               { Mod.Signature(List.rev $2) }
   | FUNCTOR LPAREN IDENT COLON moduletype RPAREN moduletype
-                                    { Mod.Functor_type(Ident.create $3, $5, $7) }
+                                    { Mod.FunS(Ident.create $3, $5, $7) }
   | LPAREN moduletype RPAREN        { $2 }
 ;
 signature:
@@ -215,9 +215,9 @@ signature:
   | signature signature_item opt_semi { $2 :: $1 }
 ;
 signature_item:
-    VALUE IDENT valuedecl             { Mod.Value_sig(Ident.create $2, $3) }
-  | TYPE typeinfo    { let (id, def) = $2 in Mod.Type_sig(Ident.create id, def) }
-  | MODULE IDENT COLON moduletype     { Mod.Module_sig(Ident.create $2, $4) }
+    VALUE IDENT valuedecl             { Mod.ValS(Ident.create $2, $3) }
+  | TYPE typeinfo    { let (id, def) = $2 in Mod.TypeS(Ident.create id, def) }
+  | MODULE IDENT COLON moduletype     { Mod.ModS(Ident.create $2, $4) }
 ;
 
 /* Toplevel entry point */

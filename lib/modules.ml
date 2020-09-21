@@ -34,9 +34,9 @@ module rec Env :
         let add_module id mty env = Ident.add id (Module mty) env
         let add_spec item env =
             match item with
-            | Mod.Value_sig(id, vty) -> add_value id vty env
-            | Mod.Type_sig(id, decl) -> add_type id decl env
-            | Mod.Module_sig(id, mty) -> add_module id mty env
+            | Mod.ValS(id, vty) -> add_value id vty env
+            | Mod.TypeS(id, decl) -> add_type id decl env
+            | Mod.ModS(id, mty) -> add_module id mty env
         let add_signature = List.fold_right add_spec
         let rec find path env =
             match path with
@@ -50,7 +50,7 @@ module rec Env :
                 end
             | Papp(p1, p2) ->
                 match (find_module p1 env, find_module p2 env) with
-                | (Mod.Functor_type(id, mty1, mty2), mty3) -> 
+                | (Mod.FunS(id, mty1, mty2), mty3) -> 
                     begin
                     try
                         ModTyping.modtype_match env mty1 mty3;
@@ -61,16 +61,16 @@ module rec Env :
                 | _ -> error "functor expected in path application"
         and find_field p field subst = function
             | [] -> error "no such field in structure"
-            | Mod.Value_sig(id, vty) :: rem ->
+            | Mod.ValS(id, vty) :: rem ->
                 if Ident.name id = field
                 then Value(Mod.Core.subst_valtype vty subst)
                 else find_field p field subst rem
-            | Mod.Type_sig(id, decl) :: rem ->
+            | Mod.TypeS(id, decl) :: rem ->
                 if Ident.name id = field
                 then Type(Mod.subst_typedecl decl subst)
                 else find_field p field
                         (Subst.add id (Pdot(p, Ident.name id)) subst) rem
-            | Mod.Module_sig(id, mty) :: rem ->
+            | Mod.ModS(id, mty) :: rem ->
                 if Ident.name id = field
                 then Module(Mod.subst_modtype mty subst)
                 else find_field p field
@@ -361,7 +361,7 @@ and ModTyping :
                 pair_signature_components sig1 sig2 in
                 let ext_env = Env.add_signature sig1 env in
                 List.iter (specification_match ext_env subst) paired_components
-            | (Functor_type(param1,arg1,res1), Functor_type(param2,arg2,res2)) ->
+            | (FunS(param1,arg1,res1), FunS(param2,arg2,res2)) ->
                 let subst = Subst.add param1 (Pident param2) Subst.identity in
                 let res1' = Mod.subst_modtype res1 subst in
                 modtype_match env arg2 arg1;
@@ -376,13 +376,13 @@ and ModTyping :
                     [] -> error "unmatched signature component"
                 | item1 :: rem1 ->
                     match (item1, item2) with
-                        (Value_sig(id1, _), Value_sig(id2, _))
+                        (ValS(id1, _), ValS(id2, _))
                         when Ident.name id1 = Ident.name id2 ->
                         (id1, id2, item1)
-                    | (Type_sig(id1, _), Type_sig(id2, _))
+                    | (TypeS(id1, _), TypeS(id2, _))
                         when Ident.name id1 = Ident.name id2 ->
                         (id1, id2, item1)
-                    | (Module_sig(id1, _), Module_sig(id2, _))
+                    | (ModS(id1, _), ModS(id2, _))
                         when Ident.name id1 = Ident.name id2 ->
                         (id1, id2, item1)
                     | _ -> find_matching_component rem1 in
@@ -390,14 +390,14 @@ and ModTyping :
                 let (pairs, subst) = pair_signature_components sig1 rem2 in
                 ((item1, item2) :: pairs, Subst.add id2 (Pident id1) subst)
         and specification_match env subst = function
-            | (Value_sig(_, vty1), Value_sig(_, vty2)) ->
+            | (ValS(_, vty1), ValS(_, vty2)) ->
                 if not (CT.valtype_match env vty1 (Core.subst_valtype vty2 subst))
                 then error "value components do not match"
-            | (Type_sig(id, decl1), Type_sig(_, decl2)) ->
+            | (TypeS(id, decl1), TypeS(_, decl2)) ->
                 if not (typedecl_match env id decl1
                                         (Mod.subst_typedecl decl2 subst))
                 then error "type components do not match"
-            | (Module_sig(_, mty1), Module_sig(_, mty2)) ->
+            | (ModS(_, mty1), ModS(_, mty2)) ->
                 modtype_match env mty1 (Mod.subst_modtype mty2 subst)
         and typedecl_match env id decl1 decl2 =
             CT.kind_match env decl1.kind decl2.kind &&
@@ -414,35 +414,35 @@ and ModTyping :
         let rec strengthen_modtype path mty =
             match mty with
             | Signature sg -> Signature(List.map (strengthen_spec path) sg)
-            | Functor_type(id, arg, res) ->
-                Functor_type(id, arg, strengthen_modtype (Papp(path, Pident id)) res)
+            | FunS(id, arg, res) ->
+                FunS(id, arg, strengthen_modtype (Papp(path, Pident id)) res)
         and strengthen_spec path item =
             match item with
-            | Value_sig(id, vty) -> item
-            | Type_sig(id, decl) ->
+            | ValS(id, vty) -> item
+            | TypeS(id, decl) ->
                 let m = match decl.manifest with
                     | None -> Some(CT.deftype_of_path
                                             (Pdot(path, Ident.name id)) decl.kind)
                     | Some ty -> Some ty 
-                in Type_sig(id, {kind = decl.kind; manifest = m})
-            | Module_sig(id, mty) ->
-                Module_sig(id, strengthen_modtype (Pdot(path, Ident.name id)) mty)
+                in TypeS(id, {kind = decl.kind; manifest = m})
+            | ModS(id, mty) ->
+                ModS(id, strengthen_modtype (Pdot(path, Ident.name id)) mty)
 
         (* Section 5.5: Elimination of dependencies on a given identifier *)
 
         let rec nondep_modtype env param = function
             | Signature sg -> Signature(nondep_signature env param sg)
-            | Functor_type(id, arg, res) ->
-                Functor_type(id, nondep_modtype env param arg,
+            | FunS(id, arg, res) ->
+                FunS(id, nondep_modtype env param arg,
                         nondep_modtype (Env.add_module id arg env) param res)
         and nondep_signature env param = function
             | [] -> []
             | item :: rem ->
                 let rem' = nondep_signature (Env.add_spec item env) param rem in
                 match item with
-                | Value_sig(id, vty) -> 
-                    Value_sig(id, CT.nondep_valtype env param vty) :: rem'
-                | Type_sig(id, decl) ->
+                | ValS(id, vty) -> 
+                    ValS(id, CT.nondep_valtype env param vty) :: rem'
+                | TypeS(id, decl) ->
                     let manifest' = 
                         match decl.manifest with
                         | None -> None
@@ -452,25 +452,25 @@ and ModTyping :
                     let decl' =
                         {kind = CT.nondep_kind env param decl.kind;
                             manifest = manifest'} in
-                    Type_sig(id, decl') :: rem'
-                | Module_sig(id, mty) ->
-                    Module_sig(id, nondep_modtype env param mty) :: rem'
+                    TypeS(id, decl') :: rem'
+                | ModS(id, mty) ->
+                    ModS(id, nondep_modtype env param mty) :: rem'
 
         (* Continuation of section 2.8: Type-checking the module language *)
 
         let rec check_modtype env = function
             | Signature sg -> check_signature env [] sg
-            | Functor_type(param, arg, res) ->
+            | FunS(param, arg, res) ->
                 check_modtype env arg;
                 check_modtype (Env.add_module param arg env) res
         and check_signature env seen = function
             | [] -> ()
-            | Value_sig(id, vty) :: rem ->
+            | ValS(id, vty) :: rem ->
                 if List.mem (Ident.name id) seen
                 then error "repeated value name";
                 CT.check_valtype env vty;
                 check_signature env (Ident.name id :: seen) rem
-            | Type_sig(id, decl) :: rem ->
+            | TypeS(id, decl) :: rem ->
                 if List.mem (Ident.name id) seen
                 then error "repeated type name";
                 CT.check_kind env decl.kind;
@@ -483,7 +483,7 @@ and ModTyping :
                 end;
                 check_signature (Env.add_type id decl env)
                                 (Ident.name id :: seen) rem
-            | Module_sig(id, mty) :: rem ->
+            | ModS(id, mty) :: rem ->
                 if List.mem (Ident.name id) seen 
                 then error "repeated module name";
                 check_modtype env mty;
@@ -497,14 +497,14 @@ and ModTyping :
                 Signature(type_structure env [] str)
             | Functor(param, mty, body) ->
                 check_modtype env mty;
-                Functor_type(param, mty,
+                FunS(param, mty,
                     type_module (Env.add_module param mty env) body)
             | Apply(funct, arg) ->
                 (* The relaxed typing rule for functor applications,
                     as described in section 5.5 *)
                 begin
                 match type_module env funct with
-                | Functor_type(param, mty_param, mty_res) ->
+                | FunS(param, mty_param, mty_res) ->
                     let mty_arg = type_module env arg in
                     modtype_match env mty_arg mty_param;
                     begin
@@ -536,31 +536,31 @@ and ModTyping :
             | Value_str(id, term) ->
                 if List.mem (Ident.name id) seen
                 then error "repeated value name";
-                (Value_sig(id, CT.type_term env term), Ident.name id :: seen)
+                (ValS(id, CT.type_term env term), Ident.name id :: seen)
             | Module_str(id, modl) ->
                 if List.mem (Ident.name id) seen
                 then error "repeated module name";
-                (Module_sig(id, type_module env modl), Ident.name id :: seen)
+                (ModS(id, type_module env modl), Ident.name id :: seen)
             | Type_str(id, kind, typ) ->
                 if List.mem (Ident.name id) seen
                 then error "repeated type name";
                 CT.check_kind env kind;
                 if not (CT.kind_match env (CT.kind_deftype env typ) kind)
                 then error "kind mismatch in type definition";
-                (Type_sig(id, {kind = kind; manifest = Some typ}),
+                (TypeS(id, {kind = kind; manifest = Some typ}),
                 Ident.name id :: seen)
 
         and eliminate_module env = function
             | Signature sg -> Signature(eliminate_signature env sg)
-            | Functor_type(param, arg, res) ->
-                Functor_type(param, 
+            | FunS(param, arg, res) ->
+                FunS(param, 
                     eliminate_module env arg, 
                     eliminate_module (Env.add_module param arg env) res)
         and eliminate_signature env = function
             | [] -> []
-            | Value_sig(id, vty) as v :: rem ->
+            | ValS(id, vty) as v :: rem ->
                 v :: eliminate_signature env rem
-            | Type_sig(id, decl) :: rem ->
+            | TypeS(id, decl) :: rem ->
                 let decl' = 
                     begin match decl.manifest with
                     | None -> decl
@@ -572,8 +572,8 @@ and ModTyping :
                         with Not_found ->
                             { kind = decl.kind; manifest = None }
                     end in
-                Type_sig(id, decl') :: eliminate_signature (Env.add_type id decl env) rem
-            | Module_sig(id, mty) as m :: rem ->
+                TypeS(id, decl') :: eliminate_signature (Env.add_type id decl env) rem
+            | ModS(id, mty) as m :: rem ->
                 m :: eliminate_signature (Env.add_module id mty env) rem
     end
 
@@ -665,19 +665,19 @@ module ModScoping =
                         | Some ty -> Some(CS.scope_deftype sc ty) }
         let rec scope_modtype sc = function
             | Signature sg -> Signature(scope_signature sc sg)
-            | Functor_type(id, arg, res) ->
-                Functor_type(id, scope_modtype sc arg,
+            | FunS(id, arg, res) ->
+                FunS(id, scope_modtype sc arg,
                             scope_modtype (Scope.enter_module id sc) res)
         and scope_signature sc = function
             | [] -> []
-            | Value_sig(id, vty) :: rem ->
-                Value_sig(id, CS.scope_valtype sc vty) ::
+            | ValS(id, vty) :: rem ->
+                ValS(id, CS.scope_valtype sc vty) ::
                 scope_signature (Scope.enter_value id sc) rem
-            | Type_sig(id, decl) :: rem ->
-                Type_sig(id, scope_typedecl sc decl) ::
+            | TypeS(id, decl) :: rem ->
+                TypeS(id, scope_typedecl sc decl) ::
                 scope_signature (Scope.enter_type id sc) rem
-            | Module_sig(id, mty) :: rem ->
-                Module_sig(id, scope_modtype sc mty) ::
+            | ModS(id, mty) :: rem ->
+                ModS(id, scope_modtype sc mty) ::
                 scope_signature (Scope.enter_module id sc) rem
         let rec scope_module sc = function
             | Longident path -> Longident(Scope.module_path path sc)
@@ -776,23 +776,23 @@ module MLPrint =
                 print_break 1 (-2);
                 print_string "end";
                 close_box()
-            | Functor_type(param, arg, body) ->
+            | FunS(param, arg, body) ->
                 open_hvbox 2;
                 print_string "functor("; print_string(Ident.name param);
                 print_string ": "; print_modtype arg; print_string ")";
                 print_space(); print_modtype body;
                 close_box()
         and print_signature_item = function
-            | Value_sig(id, vty) ->
+            | ValS(id, vty) ->
                 open_hvbox 2;
                 print_string "val "; print_string(Ident.name id);
                 print_string ":"; print_space(); print_valtype vty;
                 close_box()
-            | Type_sig(id, decl) ->
+            | TypeS(id, decl) ->
                 open_hvbox 2;
                 print_string "type "; print_typedecl id decl;
                 close_box()
-            | Module_sig(id, mty) ->
+            | ModS(id, mty) ->
                 open_hvbox 2;
                 print_string "module "; print_string(Ident.name id);
                 print_string ":"; print_space(); print_modtype mty;

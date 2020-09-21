@@ -113,12 +113,12 @@ module Mod =
                 manifest: Core.def_type option }          (* abstract or manifest *)
         type mod_type =
             | Signature of signature                    (* sig ... end *)
-            | Functor_type of Ident.t * mod_type * mod_type     (* functor(X: mty) mty *)
+            | FunS of Ident.t * mod_type * mod_type     (* functor(X: mty) mty *)
         and signature = specification list
         and specification =
-            | Value_sig of Ident.t * Core.val_type      (* val x: ty *)
-            | Type_sig of Ident.t * type_decl           (* type t :: k [= ty] *)
-            | Module_sig of Ident.t * mod_type          (* module X: mty *)
+            | ValS of Ident.t * Core.val_type      (* val x: ty *)
+            | TypeS of Ident.t * type_decl           (* type t :: k [= ty] *)
+            | ModS of Ident.t * mod_type          (* module X: mty *)
         type mod_term =
             | Longident of path                         (* X or X.Y.Z *)
             | Structure of structure                    (* struct ... end *)
@@ -139,10 +139,10 @@ module Mod =
         let rec subst_modtype mty sub =
             match mty with
             | Signature sg -> Signature(List.map (subst_sig_item sub) sg)
-            | Functor_type(id, mty1, mty2) ->
-                Functor_type(id, subst_modtype mty1 sub, subst_modtype mty2 sub)
+            | FunS(id, mty1, mty2) ->
+                FunS(id, subst_modtype mty1 sub, subst_modtype mty2 sub)
         and subst_sig_item sub = function
-            | Value_sig(id, vty) -> Value_sig(id, Core.subst_valtype vty sub)
-            | Type_sig(id, decl) -> Type_sig(id, subst_typedecl decl sub)
-            | Module_sig(id, mty) -> Module_sig(id, subst_modtype mty sub)
+            | ValS(id, vty) -> ValS(id, Core.subst_valtype vty sub)
+            | TypeS(id, decl) -> TypeS(id, subst_typedecl decl sub)
+            | ModS(id, mty) -> ModS(id, subst_modtype mty sub)
     end
