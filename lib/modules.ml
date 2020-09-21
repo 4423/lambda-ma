@@ -236,7 +236,7 @@ and CoreTyping :
         let rec infer_type env = function
             | Constant n -> int_type
             | Longident path -> instance (Env.find_value path env)
-            | Function(param, body) ->
+            | FunE(param, body) ->
                 let type_param = unknown() in
                 let type_body =
                 infer_type (Env.add_value param (trivial_scheme type_param) env) 
@@ -248,7 +248,7 @@ and CoreTyping :
                 let type_result = unknown() in
                 unify env type_funct (arrow_type type_arg type_result);
                 type_result
-            | Let(ident, arg, body) ->
+            | LetE(ident, arg, body) ->
                 begin_def();
                 let type_arg = infer_type env arg in
                 end_def();
@@ -637,11 +637,11 @@ module Scoping =
         let rec scope_term sc = function
             | Constant n -> Constant n
             | Longident path -> Longident(Scope.value_path path sc)
-            | Function(id, body) ->
-                Function(id, scope_term (Scope.enter_value id sc) body)
+            | FunE(id, body) ->
+                FunE(id, scope_term (Scope.enter_value id sc) body)
             | AppE(t1, t2) -> AppE(scope_term sc t1, scope_term sc t2)
-            | Let(id, t1, t2) ->
-                Let(id, scope_term sc t1, scope_term (Scope.enter_value id sc) t2)
+            | LetE(id, t1, t2) ->
+                LetE(id, scope_term sc t1, scope_term (Scope.enter_value id sc) t2)
         let rec scope_simple_type sc = function
             | Var v -> Var v
             | Typeconstr(path, args) ->

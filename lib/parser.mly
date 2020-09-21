@@ -104,8 +104,8 @@ valexpr:
   | valexpr LESSEQUAL valexpr         { binop "<=" $1 $3 }
   | valexpr GREATER valexpr           { binop ">" $1 $3 }
   | valexpr GREATEREQUAL valexpr      { binop ">=" $1 $3 }
-  | FUNCTION IDENT ARROW valexpr      { Core.Function(Ident.create $2, $4) }
-  | LET IDENT valbind IN valexpr      { Core.Let(Ident.create $2, $3, $5) }
+  | FUNCTION IDENT ARROW valexpr      { Core.FunE(Ident.create $2, $4) }
+  | LET IDENT valbind IN valexpr      { Core.LetE(Ident.create $2, $3, $5) }
   | IF valexpr THEN valexpr ELSE valexpr { ternop "conditional" $2 $4 $6 }
 ;
 valexpr1:
@@ -119,7 +119,7 @@ valexpr0:
 ;
 valbind:
     EQUAL valexpr     { $2 }
-  | IDENT valbind     { Core.Function(Ident.create $1, $2) }
+  | IDENT valbind     { Core.FunE(Ident.create $1, $2) }
 ;
 
 /* Type expressions for the core language */

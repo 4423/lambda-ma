@@ -73,9 +73,9 @@ module Core =
         type term =
             | Constant of int                        (* integer constants *)
             | Longident of path                      (* id or mod.mod...id *)
-            | Function of Ident.t * term             (* fun id -> expr *)
+            | FunE of Ident.t * term             (* fun id -> expr *)
             | AppE of term * term                   (* expr(expr) *)
-            | Let of Ident.t * term * term           (* let id = expr in expr *)
+            | LetE of Ident.t * term * term           (* let id = expr in expr *)
         type simple_type =
             | Var of type_variable                   (* 'a, 'b *)
             | Typeconstr of path * simple_type list  (* constructed type *)
