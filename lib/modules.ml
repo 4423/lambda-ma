@@ -1,7 +1,5 @@
-exception Error of string
-let error s = raise(Error s)
-
 open Syntax
+open Error
 
 module rec Env :
     sig

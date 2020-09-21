@@ -1,5 +1,5 @@
 open Syntax
-open Modules
+open Error
 
 module type SCOPE =
     sig

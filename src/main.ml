@@ -1,9 +1,8 @@
-exception Error of string
-
 open Syntax
 open Modules
 open CoreTyping
 open Scope
+open Error
 
 let init_scope = ref Scope.empty
 let init_env = ref Env.empty
@@ -62,12 +61,12 @@ let parse_file filepath =
   | Parsing.Parse_error ->
       close_in ichannel;
       let s = Printf.sprintf "Syntax error at char %d" (Lexing.lexeme_start lexbuf) in
-      raise (Error s)
+      error s
   | Lexer.Lexical_error msg ->
       close_in ichannel;
       let s = Printf.sprintf "Lexical error: %s, around character %d" 
                   msg (Lexing.lexeme_start lexbuf) in
-      raise (Error s)
+      error s
 
 let main() =
   try
