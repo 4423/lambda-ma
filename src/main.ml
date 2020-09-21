@@ -1,4 +1,4 @@
-exception Quit of int
+exception Error of string
 
 open Syntax
 open Modules
@@ -51,11 +51,26 @@ let _ =
       Core.body = arrow_type bool_type
                           (arrow_type talpha (arrow_type talpha talpha)) }
 
+let parse lexbuf =
+  Parser.implementation Lexer.token lexbuf
+
+let parse_file filepath = 
+  let ichannel = open_in filepath in
+  let lexbuf = Lexing.from_channel ichannel in
+  try parse lexbuf with
+  | Parsing.Parse_error ->
+      close_in ichannel;
+      let s = Printf.sprintf "Syntax error at char %d" (Lexing.lexeme_start lexbuf) in
+      raise (Error s)
+  | Lexer.Lexical_error msg ->
+      close_in ichannel;
+      let s = Printf.sprintf "Lexical error: %s, around character %d" 
+                  msg (Lexing.lexeme_start lexbuf) in
+      raise (Error s)
+
 let main() =
-  let lexbuf = Lexing.from_channel (open_in "./test/example.mml") in
-  (* let lexbuf = Lexing.from_channel stdin in *)
   try
-    let prog = Parser.implementation Lexer.token lexbuf in
+    let prog = parse_file "./test/example.mml" in
     let scoped_prog = ModScoping.scope_module !init_scope prog in
     let mty = ModTyping.type_module !init_env scoped_prog in
     MLPrint.print_modtype mty;
@@ -64,16 +79,5 @@ let main() =
   with
     Error s ->
       prerr_string "Error: "; prerr_string s; prerr_newline(); exit 2
-  | Parsing.Parse_error ->
-      prerr_string "Syntax error at char ";
-      prerr_int (Lexing.lexeme_start lexbuf);
-      prerr_newline();
-      exit 2
-  | Lexer.Lexical_error msg ->
-      prerr_string "Lexical error: "; prerr_string msg;
-      prerr_string ", around character ";
-      prerr_int (Lexing.lexeme_start lexbuf);
-      prerr_newline();
-      exit 2
 
 let _ = main()
