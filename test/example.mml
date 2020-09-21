@@ -1,0 +1,41 @@
+struct
+
+  module F = functor (M: sig end)
+    (struct
+      type t = int
+      val zero = 0
+      val f = fun x -> zero
+    end
+    :
+    sig
+      type t
+      val zero: t
+      val f: t -> t
+    end)
+
+  module Empty = struct end
+  module Empty2 = struct end
+  
+  module C = F (struct end)
+  module A = F (Empty)
+  module B = F (Empty)
+  module E = F (Empty2)
+  
+  val test4 = A.f A.zero
+  val test5 = A.f B.zero
+  (* val test6 = A.f C.zero *)
+  (* val test7 = A.f E.zero *)
+
+  module G = functor (X: sig type t end)
+    struct 
+      type t = X.t -> X.t 
+    end
+
+  module L = G(struct type t = int end)
+
+  module Apply = functor (F: functor (X: sig type t end) sig type t end)
+                    functor(A: sig type t end) F(A)
+  module Identity = functor(X: sig type t end) X
+  module Int = struct type t = int end
+  module Hi = Apply(Identity)(Int)
+end

@@ -1,0 +1,11 @@
+*~
+*.omc
+*.cmi
+*.cmx
+*.cmo
+*.o
+*.annot
+*.cache
+*.omakedb
+*.omakedb.lock
+.vscode

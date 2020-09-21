@@ -1,0 +1,45 @@
+if $(not $(OCAMLFIND_EXISTS))
+    eprintln(You need to install ocamlfind and run "omake --configure")
+    exit 1
+
+PROGRAM = metamo
+MAIN    = main
+
+SOURCE_ROOT_DIRECTORY = .
+
+OCAMLPACKS[]            +=
+OCAMLFLAGS              += -thread -annot -w A-31
+OCAMLCFLAGS             += -g
+OCAMLOPTFLAGS           +=
+OCAML_LINK_FLAGS        +=
+OCAML_BYTE_LINK_FLAGS   +=
+OCAML_NATIVE_LINK_FLAGS +=
+OCAML_LIBS              += ../lib/$(LIBRARY)
+OCAML_LIB_FLAGS         +=
+OCAML_CLIBS             +=
+OCAML_OTHER_LIBS        +=
+OCAMLINCLUDES           += ../lib
+
+FILES[] =
+
+OCAML_GENERATED_FILES[] =
+if $(file-exists lexer.mll)
+    OCAML_GENERATED_FILES = lexer.ml $(OCAML_GENERATED_FILES)
+    export
+if $(file-exists parser.mly)
+    OCAML_GENERATED_FILES = parser.mli parser.ml $(OCAML_GENERATED_FILES)
+    export
+FILES += $(removesuffix $(OCAML_GENERATED_FILES))
+FILES += $(removesuffix $(filter %.ml, $(ls $(SOURCE_ROOT_DIRECTORY))))
+FILES = $(filter-out $(MAIN), $(FILES))
+
+.PHONY: build clean run
+.DEFAULT: build
+
+run: build
+    ./$(PROGRAM)
+
+build: $(OCamlProgram $(PROGRAM), $(FILES) $(MAIN))
+clean:
+    $(RM) *.cmx *.cmxa *.cmo *.cmi *.o *.cma *.a *.run *.annot *.out *~ \
+        $(PROGRAM) $(PROGRAM).opt $(OCAML_GENERATED_FILES)

@@ -1,0 +1,26 @@
+if $(not $(OCAMLFIND_EXISTS))
+    eprintln(You need to install ocamlfind and run "omake --configure")
+    exit 1
+
+USE_METAOCAML  = true
+USE_OCAMLFIND  = true
+MENHIR_ENABLED = $(MENHIR_AVAILABLE)
+BYTE_ENABLED   = not $(OCAMLOPT_EXISTS)
+NATIVE_ENABLED = $(OCAMLOPT_EXISTS)
+
+if $(and $(USE_METAOCAML) $(USE_OCAMLFIND))
+    BYTE_ENABLED   = true
+    NATIVE_ENABLED = false
+    OCAMLC   = -toolchain metaocaml ocamlc -g
+    OCAMLOPT = -toolchain metaocaml ocamlopt
+    export
+
+PROGRAM = metamo
+LIBRARY = metamo
+MAIN    = main
+
+PHONY: build clean
+.SUBDIRS: src lib test
+
+clean:
+    $(RM) .omakedb .omakedb.lock *.omc *~

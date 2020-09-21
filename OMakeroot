@@ -1,0 +1,10 @@
+open build/OCaml
+open build/LaTeX
+
+DefineCommandVars()
+
+.PHONY: clean
+.SUBDIRS: .
+
+clean:
+    rm -f *.omc .omakedb .omakedb.lock
