@@ -31,6 +31,9 @@ let ternop op arg1 arg2 arg3 =
 %}
 
 %token <string> IDENT
+%token <string> VAR      // "<identifier>"
+%token <string> CON      // "<identifier>"
+%token <string> STR      // "<string>"
 %token <int> INT
 
 %token ARROW
@@ -52,6 +55,7 @@ let ternop op arg1 arg2 arg3 =
 %token LESSEQUAL
 %token LESSGREATER
 %token LET
+%token REC               // "rec"
 %token LIDENT
 %token LPAREN
 %token MINUS
@@ -68,6 +72,28 @@ let ternop op arg1 arg2 arg3 =
 %token THEN
 %token TYPE
 %token VALUE
+%token MATCH             // "match"
+%token WITH              // "with"
+%token COLCOL            // "::"
+%token CONJ              // "&&"
+%token BAR               // "|"
+%token DISJ              // "||"
+%token TRUE              // "true"
+%token FALSE             // "false"
+%token NOT               // "not"
+%token AND               // "and"
+%token MCOD              // "mcod"
+%token LMCOD             // ".<<"
+%token RMCOD             // ">>."
+%token MESC              // ".~~"
+%token DOLLAR            // "$"
+%token MRUN              // "Runmod"
+%token CODE              // "code"
+%token LCOD              // ".<"
+%token RCOD              // ">."
+%token ESC               // ".~"
+%token CSP               // ".%"
+%token RUN               // "Runcode.run"
 
 %right ARROW
 %right COMMA
