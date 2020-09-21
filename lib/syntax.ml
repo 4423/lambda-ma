@@ -74,7 +74,7 @@ module Core =
             | Constant of int                        (* integer constants *)
             | Longident of path                      (* id or mod.mod...id *)
             | Function of Ident.t * term             (* fun id -> expr *)
-            | Apply of term * term                   (* expr(expr) *)
+            | AppE of term * term                   (* expr(expr) *)
             | Let of Ident.t * term * term           (* let id = expr in expr *)
         type simple_type =
             | Var of type_variable                   (* 'a, 'b *)
@@ -122,14 +122,14 @@ module Mod =
         type mod_term =
             | Longident of path                         (* X or X.Y.Z *)
             | Structure of structure                    (* struct ... end *)
-            | Functor of Ident.t * mod_type * mod_term  (* functor (X: mty) mod *)
-            | Apply of mod_term * mod_term              (* mod1(mod2) *)
+            | FunM of Ident.t * mod_type * mod_term     (* functor (X: mty) mod *)
+            | AppM of mod_term * mod_term               (* mod1(mod2) *)
             | Constraint of mod_term * mod_type         (* (mod : mty) *)
         and structure = definition list
         and definition =
-            | Value_str of Ident.t * Core.term          (* let x = expr *)
-            | Type_str of Ident.t * Core.kind * Core.def_type   (* type t :: k = ty *)
-            | Module_str of Ident.t * mod_term          (* module X = mod *)
+            | LetM of Ident.t * Core.term               (* let x = expr *)
+            | TypeM of Ident.t * Core.kind * Core.def_type   (* type t :: k = ty *)
+            | ModM of Ident.t * mod_term                (* module X = mod *)
 
         let subst_typedecl decl sub =
             { kind = Core.subst_kind decl.kind sub;

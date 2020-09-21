@@ -242,7 +242,7 @@ and CoreTyping :
                 infer_type (Env.add_value param (trivial_scheme type_param) env) 
                             body in
                 arrow_type type_param type_body
-            | Apply(funct, arg) ->
+            | AppE(funct, arg) ->
                 let type_funct = infer_type env funct in
                 let type_arg = infer_type env arg in
                 let type_result = unknown() in
@@ -495,11 +495,11 @@ and ModTyping :
                 strengthen_modtype path (Env.find_module path env)
             | Structure str ->
                 Signature(type_structure env [] str)
-            | Functor(param, mty, body) ->
+            | FunM(param, mty, body) ->
                 check_modtype env mty;
                 FunS(param, mty,
                     type_module (Env.add_module param mty env) body)
-            | Apply(funct, arg) ->
+            | AppM(funct, arg) ->
                 (* The relaxed typing rule for functor applications,
                     as described in section 5.5 *)
                 begin
@@ -533,15 +533,15 @@ and ModTyping :
                 let (sigitem, seen') = type_definition env seen stritem in
                 sigitem :: type_structure (Env.add_spec sigitem env) seen' rem
         and type_definition env seen = function
-            | Value_str(id, term) ->
+            | LetM(id, term) ->
                 if List.mem (Ident.name id) seen
                 then error "repeated value name";
                 (ValS(id, CT.type_term env term), Ident.name id :: seen)
-            | Module_str(id, modl) ->
+            | ModM(id, modl) ->
                 if List.mem (Ident.name id) seen
                 then error "repeated module name";
                 (ModS(id, type_module env modl), Ident.name id :: seen)
-            | Type_str(id, kind, typ) ->
+            | TypeM(id, kind, typ) ->
                 if List.mem (Ident.name id) seen
                 then error "repeated type name";
                 CT.check_kind env kind;
@@ -639,7 +639,7 @@ module Scoping =
             | Longident path -> Longident(Scope.value_path path sc)
             | Function(id, body) ->
                 Function(id, scope_term (Scope.enter_value id sc) body)
-            | Apply(t1, t2) -> Apply(scope_term sc t1, scope_term sc t2)
+            | AppE(t1, t2) -> AppE(scope_term sc t1, scope_term sc t2)
             | Let(id, t1, t2) ->
                 Let(id, scope_term sc t1, scope_term (Scope.enter_value id sc) t2)
         let rec scope_simple_type sc = function
@@ -682,22 +682,22 @@ module ModScoping =
         let rec scope_module sc = function
             | Longident path -> Longident(Scope.module_path path sc)
             | Structure str -> Structure(scope_structure sc str)
-            | Functor(id, arg, body) ->
-                Functor(id, scope_modtype sc arg,
+            | FunM(id, arg, body) ->
+                FunM(id, scope_modtype sc arg,
                         scope_module (Scope.enter_module id sc) body)
-            | Apply(m1, m2) -> Apply(scope_module sc m1, scope_module sc m2)
+            | AppM(m1, m2) -> AppM(scope_module sc m1, scope_module sc m2)
             | Constraint(m, mty) ->
                 Constraint(scope_module sc m, scope_modtype sc mty)
         and scope_structure sc = function
             | [] -> []
-            | Value_str(id, v) :: rem ->
-                Value_str(id, CS.scope_term sc v) ::
+            | LetM(id, v) :: rem ->
+                LetM(id, CS.scope_term sc v) ::
                 scope_structure (Scope.enter_value id sc) rem
-            | Type_str(id, kind, dty) :: rem ->
-                Type_str(id, CS.scope_kind sc kind, CS.scope_deftype sc dty) ::
+            | TypeM(id, kind, dty) :: rem ->
+                TypeM(id, CS.scope_kind sc kind, CS.scope_deftype sc dty) ::
                 scope_structure (Scope.enter_type id sc) rem
-            | Module_str(id, m) :: rem ->
-                Module_str(id, scope_module sc m) ::
+            | ModM(id, m) :: rem ->
+                ModM(id, scope_module sc m) ::
                 scope_structure (Scope.enter_module id sc) rem
     end
 

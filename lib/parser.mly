@@ -24,9 +24,9 @@ let find_type_variable name =
     v
 
 let binop op arg1 arg2 =
-  Core.Apply(Core.Apply(Core.Longident(Pident(Ident.create op)), arg1), arg2)
+  Core.AppE(Core.AppE(Core.Longident(Pident(Ident.create op)), arg1), arg2)
 let ternop op arg1 arg2 arg3 =
-  Core.Apply(Core.Apply(Core.Apply(Core.Longident(Pident(Ident.create op)), arg1), arg2), arg3)
+  Core.AppE(Core.AppE(Core.AppE(Core.Longident(Pident(Ident.create op)), arg1), arg2), arg3)
 
 %}
 
@@ -110,7 +110,7 @@ valexpr:
 ;
 valexpr1:
     valexpr0 { $1 }
-  | valexpr1 valexpr0 { Core.Apply($1, $2) }
+  | valexpr1 valexpr0 { Core.AppE($1, $2) }
 ;
 valexpr0:
     path { Core.Longident($1) }
@@ -180,8 +180,8 @@ modulexpr:
     path                              { Mod.Longident $1 }
   | STRUCT structure END              { Mod.Structure(List.rev $2) }
   | FUNCTOR LPAREN IDENT COLON moduletype RPAREN modulexpr
-                                      { Mod.Functor(Ident.create $3, $5, $7) }
-  | modulexpr LPAREN modulexpr RPAREN { Mod.Apply($1, $3) }
+                                      { Mod.FunM(Ident.create $3, $5, $7) }
+  | modulexpr LPAREN modulexpr RPAREN { Mod.AppM($1, $3) }
   | LPAREN modulexpr RPAREN           { $2 }
   | modulexpr COLON moduletype        { Mod.Constraint($1, $3) }
 ;
@@ -190,12 +190,12 @@ structure:
   | structure structure_item opt_semi { $2 :: $1 }
 ;
 structure_item:
-    VALUE IDENT valbind           { Mod.Value_str(Ident.create $2, $3) }
+    VALUE IDENT valbind           { Mod.LetM(Ident.create $2, $3) }
   | TYPE typedef                  { let (id, kind, def) = $2 in
-                                    Mod.Type_str(Ident.create id, kind, def) }
+                                    Mod.TypeM(Ident.create id, kind, def) }
   | MODULE IDENT COLON moduletype EQUAL modulexpr
-                     { Mod.Module_str(Ident.create $2, Mod.Constraint($6, $4)) }
-  | MODULE IDENT EQUAL modulexpr   { Mod.Module_str(Ident.create $2, $4) }
+                     { Mod.ModM(Ident.create $2, Mod.Constraint($6, $4)) }
+  | MODULE IDENT EQUAL modulexpr   { Mod.ModM(Ident.create $2, $4) }
 ;
 opt_semi:
     /* nothing */ { () }
