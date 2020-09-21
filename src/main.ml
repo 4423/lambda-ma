@@ -3,6 +3,7 @@ exception Error of string
 open Syntax
 open Modules
 open CoreTyping
+open Scope
 
 let init_scope = ref Scope.empty
 let init_env = ref Env.empty
