@@ -129,6 +129,7 @@ module Mod =
         and structure = definition list
         and definition =
             | LetM of Ident.t * Core.term               (* let x = expr *)
+            | LetRecM of Ident.t * Core.term            (* let x = expr *)
             | TypeM of Ident.t * Core.kind * Core.def_type   (* type t :: k = ty *)
             | ModM of Ident.t * mod_term                (* module X = mod *)
 

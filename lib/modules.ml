@@ -88,6 +88,7 @@ and CoreTyping :
     sig
         (* Typing functions *)
         val type_term: Env.t -> Core.term -> Core.val_type
+        val type_term_rec: Env.t -> Ident.t -> Core.term -> Core.val_type
         val kind_deftype: Env.t -> Core.def_type -> Core.kind
         val check_valtype: Env.t -> Core.val_type -> unit
         val check_kind: Env.t -> Core.kind -> unit
@@ -280,6 +281,14 @@ and CoreTyping :
         let type_term env term =
             begin_def();
             let ty = infer_type env term in
+            end_def();
+            generalize ty
+
+        let type_term_rec env ident term =
+            begin_def();
+            let type_param = unknown() in
+            let env' = Env.add_value ident (trivial_scheme type_param) env in
+            let ty = infer_type env' term in
             end_def();
             generalize ty
 
@@ -542,6 +551,10 @@ and ModTyping :
                 if List.mem (Ident.name id) seen
                 then error "repeated value name";
                 (ValS(id, CT.type_term env term), Ident.name id :: seen)
+            | LetRecM(id, term) ->
+                if List.mem (Ident.name id) seen
+                then error "repeated value name";
+                (ValS(id, CT.type_term_rec env id term), Ident.name id :: seen)
             | ModM(id, modl) ->
                 if List.mem (Ident.name id) seen
                 then error "repeated module name";

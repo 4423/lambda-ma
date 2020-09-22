@@ -113,6 +113,9 @@ module ModScoping =
             | LetM(id, v) :: rem ->
                 LetM(id, CS.scope_term sc v) ::
                 scope_structure (Scope.enter_value id sc) rem
+            | LetRecM(id, v) :: rem ->
+                LetRecM(id, CS.scope_term (Scope.enter_value id sc) v) ::
+                scope_structure (Scope.enter_value id sc) rem
             | TypeM(id, kind, dty) :: rem ->
                 TypeM(id, CS.scope_kind sc kind, CS.scope_deftype sc dty) ::
                 scope_structure (Scope.enter_type id sc) rem

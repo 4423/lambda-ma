@@ -224,6 +224,7 @@ structure:
 ;
 structure_item:
     LET VAR valbind           { Mod.LetM(Ident.create $2, $3) }
+  | LET REC VAR valbind           { Mod.LetRecM(Ident.create $3, $4) }
   | TYPE typedef                  { let (id, kind, def) = $2 in
                                     Mod.TypeM(Ident.create id, kind, def) }
   | MODULE CON COLON moduletype EQUAL modulexpr
