@@ -58,6 +58,10 @@ module Scoping =
             | AppE(t1, t2) -> AppE(scope_term sc t1, scope_term sc t2)
             | LetE(id, t1, t2) ->
                 LetE(id, scope_term sc t1, scope_term (Scope.enter_value id sc) t2)
+            | LetRecE(id, t1, t2) ->
+                LetRecE(id, 
+                    scope_term (Scope.enter_value id sc) t1, 
+                    scope_term (Scope.enter_value id sc) t2)
         let rec scope_simple_type sc = function
             | Var v -> Var v
             | Typeconstr(path, args) ->

@@ -36,3 +36,9 @@
   module Identity = functor(X: sig type t end) -> X
   module Int = struct type t = int end
   module Hi = Apply(Identity)(Int)
+
+let fib = 
+  let rec f = fun n -> 
+    if n < 3 then 1
+    else f (n-1) + f (n-2)
+  in f

@@ -138,6 +138,7 @@ valexpr:
   | valexpr GREATEREQUAL valexpr      { binop ">=" $1 $3 }
   | FUNCTION VAR ARROW valexpr      { Core.FunE(Ident.create $2, $4) }
   | LET VAR valbind IN valexpr      { Core.LetE(Ident.create $2, $3, $5) }
+  | LET REC VAR valbind IN valexpr     { Core.LetRecE(Ident.create $3, $4, $6) }
   | IF valexpr THEN valexpr ELSE valexpr { ternop "conditional" $2 $4 $6 }
 ;
 valexpr1:

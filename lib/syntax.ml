@@ -76,6 +76,7 @@ module Core =
             | FunE of Ident.t * term             (* fun id -> expr *)
             | AppE of term * term                   (* expr(expr) *)
             | LetE of Ident.t * term * term           (* let id = expr in expr *)
+            | LetRecE of Ident.t * term * term      (* let rec id = expr in expr *)
         type simple_type =
             | Var of type_variable                   (* 'a, 'b *)
             | Typeconstr of path * simple_type list  (* constructed type *)

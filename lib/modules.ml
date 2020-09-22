@@ -251,6 +251,13 @@ and CoreTyping :
                 let type_arg = infer_type env arg in
                 end_def();
                 infer_type (Env.add_value ident (generalize type_arg) env) body
+            | LetRecE(ident, arg, body) ->
+                begin_def();
+                let type_param = unknown() in
+                let env' = Env.add_value ident (trivial_scheme type_param) env in
+                let type_arg = infer_type env' arg in
+                end_def();
+                infer_type (Env.add_value ident (generalize type_arg) env) body
 
         let rec check_simple_type env params ty =
         match typerepr ty with
