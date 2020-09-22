@@ -55,7 +55,7 @@ let con        = (upper) (alpha | "_" | digit)*
 rule token = parse
   | whitespace+
             { token lexbuf }
-  (*
+
   | var
             { let s = Lexing.lexeme lexbuf in
               try Hashtbl.find keyword_table s
@@ -64,15 +64,7 @@ rule token = parse
             { let s = Lexing.lexeme lexbuf in
               try Hashtbl.find keyword_table s
               with Not_found -> CON s }
-  *)
-  | [ 'A'-'Z' 'a'-'z' '\192'-'\214' '\216'-'\246' '\248'-'\254' ]
-    [ 'A'-'Z' 'a'-'z' '\192'-'\214' '\216'-'\246' '\248'-'\254'
-      '0'-'9' '_' '\'' ] *
-            { let s = Lexing.lexeme lexbuf in
-              try
-                Hashtbl.find keyword_table s
-              with Not_found ->
-                IDENT s }
+
   | digit+ | hex | oct | bin
             { INT (int_of_string(Lexing.lexeme lexbuf)) }
   | "(*"

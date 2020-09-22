@@ -30,7 +30,6 @@ let ternop op arg1 arg2 arg3 =
 
 %}
 
-%token <string> IDENT
 %token <string> VAR      // "<identifier>"
 %token <string> CON      // "<identifier>"
 %token <string> STR      // "<string>"
@@ -114,8 +113,12 @@ let ternop op arg1 arg2 arg3 =
 /* Paths */
 
 path:
-    IDENT           { IdentP(Ident.create $1) }
-  | path DOT IDENT  { DotP($1, $3) }
+  | CON           { IdentP(Ident.create $1) }
+  | path DOT CON  { DotP($1, $3) }
+;
+path_var:
+  | VAR           { IdentP(Ident.create $1) }
+  | path DOT VAR  { DotP($1, $3) }
 ;
 
 /* Value expressions for the core language */
@@ -133,8 +136,8 @@ valexpr:
   | valexpr LESSEQUAL valexpr         { binop "<=" $1 $3 }
   | valexpr GREATER valexpr           { binop ">" $1 $3 }
   | valexpr GREATEREQUAL valexpr      { binop ">=" $1 $3 }
-  | FUNCTION IDENT ARROW valexpr      { Core.FunE(Ident.create $2, $4) }
-  | LET IDENT valbind IN valexpr      { Core.LetE(Ident.create $2, $3, $5) }
+  | FUNCTION VAR ARROW valexpr      { Core.FunE(Ident.create $2, $4) }
+  | LET VAR valbind IN valexpr      { Core.LetE(Ident.create $2, $3, $5) }
   | IF valexpr THEN valexpr ELSE valexpr { ternop "conditional" $2 $4 $6 }
 ;
 valexpr1:
@@ -142,24 +145,24 @@ valexpr1:
   | valexpr1 valexpr0 { Core.AppE($1, $2) }
 ;
 valexpr0:
-    path { Core.Longident($1) }
+    path_var  { Core.Longident($1) }
   | INT  { Core.Constant $1 }
   | LPAREN valexpr RPAREN { $2 }
 ;
 valbind:
     EQUAL valexpr     { $2 }
-  | IDENT valbind     { Core.FunE(Ident.create $1, $2) }
+  | VAR valbind     { Core.FunE(Ident.create $1, $2) }
 ;
 
 /* Type expressions for the core language */
 
 simpletype:
-    QUOTE IDENT             { Core.Var(find_type_variable $2) }
+    QUOTE VAR             { Core.Var(find_type_variable $2) }
   | simpletype ARROW simpletype { Core.Typeconstr(path_arrow, [$1; $3]) }
   | simpletype STAR simpletype  { Core.Typeconstr(path_star, [$1; $3]) }
-  | path                    { Core.Typeconstr($1, []) }
-  | simpletype path         { Core.Typeconstr($2, [$1]) }
-  | LPAREN simpletypelist RPAREN path { Core.Typeconstr($4, List.rev $2) }
+  | path_var                    { Core.Typeconstr($1, []) }
+  | simpletype path_var         { Core.Typeconstr($2, [$1]) }
+  | LPAREN simpletypelist RPAREN path_var { Core.Typeconstr($4, List.rev $2) }
 ;
 simpletypelist:
     simpletype { [$1] }
@@ -177,10 +180,10 @@ colon_begin_scheme: /* Hack to perform side effects before reading the type */
 /* Type definitions and declarations */
 
 typedecl:
-    typeparams IDENT        { ($2, {Core.arity = List.length $1}) }
+    typeparams VAR        { ($2, {Core.arity = List.length $1}) }
 ;
 typedef:
-    typeparams IDENT EQUAL simpletype
+    typeparams VAR EQUAL simpletype
       { reset_type_variables();
         ($2, {Core.arity = List.length $1}, {Core.params = $1; Core.defbody = $4}) }
 ;
@@ -194,7 +197,7 @@ typeparamlist:
   | typeparamlist COMMA typeparam   { $3 :: $1 }
 ;
 typeparam:
-    QUOTE IDENT { find_type_variable $2 }
+    QUOTE VAR { find_type_variable $2 }
 ;
 typeinfo:
     typedef   { let (id, kind, def) = $1 in
@@ -208,7 +211,7 @@ typeinfo:
 modulexpr:
     path                              { Mod.Longident $1 }
   | STRUCT structure END              { Mod.Structure(List.rev $2) }
-  | FUNCTOR LPAREN IDENT COLON moduletype RPAREN ARROW modulexpr
+  | FUNCTOR LPAREN CON COLON moduletype RPAREN ARROW modulexpr
                                       { Mod.FunM(Ident.create $3, $5, $8) }
   | modulexpr LPAREN modulexpr RPAREN { Mod.AppM($1, $3) }
   | LPAREN modulexpr RPAREN           { $2 }
@@ -219,12 +222,12 @@ structure:
   | structure structure_item opt_semi { $2 :: $1 }
 ;
 structure_item:
-    LET IDENT valbind           { Mod.LetM(Ident.create $2, $3) }
+    LET VAR valbind           { Mod.LetM(Ident.create $2, $3) }
   | TYPE typedef                  { let (id, kind, def) = $2 in
                                     Mod.TypeM(Ident.create id, kind, def) }
-  | MODULE IDENT COLON moduletype EQUAL modulexpr
+  | MODULE CON COLON moduletype EQUAL modulexpr
                      { Mod.ModM(Ident.create $2, Mod.Constraint($6, $4)) }
-  | MODULE IDENT EQUAL modulexpr   { Mod.ModM(Ident.create $2, $4) }
+  | MODULE CON EQUAL modulexpr   { Mod.ModM(Ident.create $2, $4) }
 ;
 opt_semi:
     /* nothing */ { () }
@@ -235,7 +238,7 @@ opt_semi:
 
 moduletype:
     SIG signature END               { Mod.Signature(List.rev $2) }
-  | FUNCTOR LPAREN IDENT COLON moduletype RPAREN ARROW moduletype
+  | FUNCTOR LPAREN CON COLON moduletype RPAREN ARROW moduletype
                                     { Mod.FunS(Ident.create $3, $5, $8) }
   | LPAREN moduletype RPAREN        { $2 }
 ;
@@ -244,9 +247,9 @@ signature:
   | signature signature_item opt_semi { $2 :: $1 }
 ;
 signature_item:
-    VALUE IDENT valuedecl             { Mod.ValS(Ident.create $2, $3) }
+    VALUE VAR valuedecl             { Mod.ValS(Ident.create $2, $3) }
   | TYPE typeinfo    { let (id, def) = $2 in Mod.TypeS(Ident.create id, def) }
-  | MODULE IDENT COLON moduletype     { Mod.ModS(Ident.create $2, $4) }
+  | MODULE CON COLON moduletype     { Mod.ModS(Ident.create $2, $4) }
 ;
 
 /* Toplevel entry point */
