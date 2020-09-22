@@ -31,7 +31,13 @@ let _ =
         enter_val name
           { Core.quantif = [];
             Core.body = arrow_type int_type (arrow_type int_type bool_type)})
-    ["+"; "-"; "*"; "/"; "=="; "<>"; "<"; "<="; ">"; ">="];
+    ["=="; "<>"; "<"; "<="; ">"; ">="];
+  List.iter
+    (fun name ->
+        enter_val name
+          { Core.quantif = [];
+            Core.body = arrow_type int_type (arrow_type int_type int_type)})
+    ["+"; "-"; "*"; "/"];
   let alpha = newvar() and beta = newvar() in
   let talpha = Core.Var alpha and tbeta = Core.Var beta in
   enter_val ","
