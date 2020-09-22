@@ -73,8 +73,7 @@ let main() =
     let prog = parse_file "./test/example.mml" in
     let scoped_prog = ModScoping.scope_module !init_scope prog in
     let mty = ModTyping.type_module !init_env scoped_prog in
-    match mty with Mod.Signature(sg) ->  MLPrint.print_signature sg;
-    Format.print_newline();
+    Printer.f mty;
     exit 0
   with
     Error s ->
