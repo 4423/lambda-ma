@@ -106,6 +106,9 @@ let ternop op arg1 arg2 arg3 =
 %start phrase
 %type <Syntax.Mod.definition> phrase
 
+%start main
+%type <Syntax.Mod.mod_term> main
+
 %%
 
 /* Paths */
@@ -251,6 +254,10 @@ signature_item:
 phrase:
     structure_item SEMISEMI           { $1 }
   | EOF                               { raise End_of_file }
+;
+
+main:
+  | structure EOF   { Structure (List.rev $1) }
 ;
 
 /* Sep. comp. entry point */

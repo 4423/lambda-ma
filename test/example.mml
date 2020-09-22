@@ -1,5 +1,3 @@
-struct
-
   module F = functor (M: sig end) ->
     (struct
       type t = int
@@ -38,4 +36,3 @@ struct
   module Identity = functor(X: sig type t end) -> X
   module Int = struct type t = int end
   module Hi = Apply(Identity)(Int)
-end

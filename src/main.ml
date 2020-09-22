@@ -52,7 +52,7 @@ let _ =
                           (arrow_type talpha (arrow_type talpha talpha)) }
 
 let parse lexbuf =
-  Parser.implementation Lexer.token lexbuf
+  Parser.main Lexer.token lexbuf
 
 let parse_file filepath = 
   let ichannel = open_in filepath in
@@ -73,7 +73,7 @@ let main() =
     let prog = parse_file "./test/example.mml" in
     let scoped_prog = ModScoping.scope_module !init_scope prog in
     let mty = ModTyping.type_module !init_env scoped_prog in
-    MLPrint.print_modtype mty;
+    match mty with Mod.Signature(sg) ->  MLPrint.print_signature sg;
     Format.print_newline();
     exit 0
   with

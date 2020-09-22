@@ -651,8 +651,7 @@ module MLPrint =
             | Signature sg ->
                 open_hvbox 2;
                 print_string "sig";
-                List.iter
-                    (fun item -> print_space(); print_signature_item item) sg;
+                print_signature sg;
                 print_break 1 (-2);
                 print_string "end";
                 close_box()
@@ -662,6 +661,8 @@ module MLPrint =
                 print_string ": "; print_modtype arg; print_string ")";
                 print_space(); print_string "-> "; print_modtype body;
                 close_box()
+        and print_signature sg =
+            List.iter (fun item -> print_space(); print_signature_item item) sg
         and print_signature_item = function
             | ValS(id, vty) ->
                 open_hvbox 2;
