@@ -140,6 +140,9 @@ valexpr:
   | LET VAR valbind IN valexpr      { Core.LetE(Ident.create $2, $3, $5) }
   | LET REC VAR valbind IN valexpr     { Core.LetRecE(Ident.create $3, $4, $6) }
   | IF valexpr THEN valexpr ELSE valexpr { ternop "conditional" $2 $4 $6 }
+  | LCOD valexpr RCOD                 { Core.CodE($2) }
+  | ESC valexpr                       { Core.EscE($2) }
+  | RUN valexpr                       { Core.RunE($2) }
 ;
 valexpr1:
     valexpr0 { $1 }

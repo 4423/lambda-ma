@@ -112,6 +112,7 @@ and CoreTyping :
         val arrow_type: Core.simple_type -> Core.simple_type -> Core.simple_type
         val path_arrow: path
         val path_star: path
+        val path_code: path
         val newvar: unit -> Core.type_variable
         val begin_def: unit -> unit
         val end_def: unit -> unit
@@ -231,6 +232,9 @@ and CoreTyping :
         let int_type = Typeconstr(path_int, [])
         let ident_star = Ident.create "*"
         let path_star = IdentP ident_star
+        let ident_code = Ident.create "code"
+        let path_code = IdentP ident_code
+        let code_type t = Typeconstr(path_code, [t])
 
         let rec infer_type env = function
             | Constant n -> int_type
@@ -259,6 +263,23 @@ and CoreTyping :
                 let type_arg = infer_type env' arg in
                 end_def();
                 infer_type (Env.add_value ident (generalize type_arg) env) body
+            | CodE t ->
+                let ty = infer_type env t in
+                code_type ty
+            | EscE t ->
+                let ty = infer_type env t in
+                begin
+                match ty with
+                | Typeconstr(path, [t]) when path = path_code -> t
+                | _ -> error "escape for non-code value"
+                end
+            | RunE t ->
+                let ty = infer_type env t in
+                begin
+                match ty with
+                | Typeconstr(path, [t]) when path = path_code -> t
+                | _ -> error "run for non-code value"
+                end
 
         let rec check_simple_type env params ty =
         match typerepr ty with

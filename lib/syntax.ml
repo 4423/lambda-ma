@@ -77,6 +77,9 @@ module Core =
             | AppE of term * term                   (* expr(expr) *)
             | LetE of Ident.t * term * term           (* let id = expr in expr *)
             | LetRecE of Ident.t * term * term      (* let rec id = expr in expr *)
+            | CodE of term                          (* <expr> *)
+            | EscE of term                          (* ~expr *)
+            | RunE of term                          (* run expr *)
         type simple_type =
             | Var of type_variable                   (* 'a, 'b *)
             | Typeconstr of path * simple_type list  (* constructed type *)

@@ -46,3 +46,7 @@ let fib =
 let rec f = fun n -> 
   if n < 3 then 1
   else f (n-1) + f (n-2)
+
+let c1 = .<1+2>.
+let c2 = .<.~c1>.
+let c3 = Runcode.run c1

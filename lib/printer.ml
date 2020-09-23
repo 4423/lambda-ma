@@ -34,6 +34,8 @@ let rec print_simple_type ty =
     | Typeconstr(path, [t1;t2]) when path = CoreTyping.path_star ->
         print_simple_type t1; print_string " * ";
         print_simple_type t2
+    | Typeconstr(path, [t]) when path = CoreTyping.path_code ->
+        print_simple_type t; print_string " code"
     | Typeconstr(path, []) ->
         print_path path
     | Typeconstr(path, [t]) ->

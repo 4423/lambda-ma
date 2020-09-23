@@ -4,16 +4,18 @@ open CoreTyping
 open Scope
 open Error
 
-let init_scope = ref Scope.empty
+let init_scope = ref StagedScope.empty
 let init_env = ref Env.empty
 
 let enter_type id decl =
-  init_scope := Scope.enter_type id !init_scope;
+  init_scope := StagedScope.enter_type id 0 !init_scope;
+  init_scope := StagedScope.enter_type id 1 !init_scope;
   init_env := Env.add_type id decl !init_env
 
 let enter_val name ty =
   let id = Ident.create name in
-  init_scope := Scope.enter_value id !init_scope;
+  init_scope := StagedScope.enter_value id 0 !init_scope;
+  init_scope := StagedScope.enter_value id 1 !init_scope;
   init_env := Env.add_value id ty !init_env
 
 let _ =
@@ -77,7 +79,7 @@ let parse_file filepath =
 let main() =
   try
     let prog = parse_file "./test/example.mml" in
-    let scoped_prog = ModScoping.scope_module !init_scope prog in
+    let scoped_prog = ModScoping.scope_module 0 !init_scope prog in
     let mty = ModTyping.type_module !init_env scoped_prog in
     Printer.f mty;
     exit 0
