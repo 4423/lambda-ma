@@ -169,15 +169,15 @@ module ModScoping =
         and scope_structure lv sc = function
             | [] -> []
             | LetM(id, v) :: rem ->
-                LetM(id, CS.scope_term lv sc v) ::
-                scope_structure lv (Scope.enter_value id lv sc) rem
+                let c = LetM(id, CS.scope_term lv sc v) in
+                c :: scope_structure lv (Scope.enter_value id lv sc) rem
             | LetRecM(id, v) :: rem ->
-                LetRecM(id, CS.scope_term lv (Scope.enter_value id lv sc) v) ::
-                scope_structure lv (Scope.enter_value id lv sc) rem
+                let c = LetRecM(id, CS.scope_term lv (Scope.enter_value id lv sc) v) in
+                c :: scope_structure lv (Scope.enter_value id lv sc) rem
             | TypeM(id, kind, dty) :: rem ->
-                TypeM(id, CS.scope_kind lv sc kind, CS.scope_deftype lv sc dty) ::
-                scope_structure lv (Scope.enter_type id lv sc) rem
+                let c = TypeM(id, CS.scope_kind lv sc kind, CS.scope_deftype lv sc dty) in
+                c :: scope_structure lv (Scope.enter_type id lv sc) rem
             | ModM(id, m) :: rem ->
-                ModM(id, scope_module lv sc m) ::
-                scope_structure lv (Scope.enter_module id lv sc) rem
+                let c = ModM(id, scope_module lv sc m) in
+                c :: scope_structure lv (Scope.enter_module id lv sc) rem
     end
