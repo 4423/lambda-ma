@@ -56,15 +56,6 @@ rule token = parse
   | whitespace+
             { token lexbuf }
 
-  | var
-            { let s = Lexing.lexeme lexbuf in
-              try Hashtbl.find keyword_table s
-              with Not_found -> VAR s }
-  | con
-            { let s = Lexing.lexeme lexbuf in
-              try Hashtbl.find keyword_table s
-              with Not_found -> CON s }
-
   | digit+ | hex | oct | bin
             { INT (int_of_string(Lexing.lexeme lexbuf)) }
   | "(*"
@@ -112,6 +103,15 @@ rule token = parse
   | ".~"    { ESC }
   | ".%"    { CSP }
   | "Runcode.run" { RUN }
+
+  | var
+            { let s = Lexing.lexeme lexbuf in
+              try Hashtbl.find keyword_table s
+              with Not_found -> VAR s }
+  | con
+            { let s = Lexing.lexeme lexbuf in
+              try Hashtbl.find keyword_table s
+              with Not_found -> CON s }
 
   | "\"" (char+ as lexeme) "\""
       { STR (lexeme) }

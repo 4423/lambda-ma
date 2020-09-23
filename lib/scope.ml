@@ -146,6 +146,7 @@ module ModScoping =
             | FunS(id, arg, res) ->
                 FunS(id, scope_modtype lv sc arg,
                             scope_modtype lv (Scope.enter_module id lv sc) res)
+            | CodS mty -> CodS(scope_modtype (lv+1) sc mty)
         and scope_signature lv sc = function
             | [] -> []
             | ValS(id, vty) :: rem ->
@@ -166,6 +167,9 @@ module ModScoping =
             | AppM(m1, m2) -> AppM(scope_module lv sc m1, scope_module lv sc m2)
             | Constraint(m, mty) ->
                 Constraint(scope_module lv sc m, scope_modtype lv sc mty)
+            | CodM(m) -> CodM(scope_module (lv+1) sc m)
+            | EscM(m) -> EscM(scope_module (lv-1) sc m)
+            | RunM(m, mty) -> RunM(scope_module lv sc m, scope_modtype lv sc mty)
         and scope_structure lv sc = function
             | [] -> []
             | LetM(id, v) :: rem ->

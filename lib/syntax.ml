@@ -118,6 +118,7 @@ module Mod =
         type mod_type =
             | Signature of signature                    (* sig ... end *)
             | FunS of Ident.t * mod_type * mod_type     (* functor(X: mty) mty *)
+            | CodS of mod_type                          (* mty mcod *)
         and signature = specification list
         and specification =
             | ValS of Ident.t * Core.val_type      (* val x: ty *)
@@ -129,6 +130,9 @@ module Mod =
             | FunM of Ident.t * mod_type * mod_term     (* functor (X: mty) mod *)
             | AppM of mod_term * mod_term               (* mod1(mod2) *)
             | Constraint of mod_term * mod_type         (* (mod : mty) *)
+            | CodM of mod_term                          (* <<mod>> *)
+            | EscM of mod_term                          (* ~~mod *)
+            | RunM of mod_term * mod_type               (* Runmod(mod : mty) *)
         and structure = definition list
         and definition =
             | LetM of Ident.t * Core.term               (* let x = expr *)
@@ -146,6 +150,7 @@ module Mod =
             | Signature sg -> Signature(List.map (subst_sig_item sub) sg)
             | FunS(id, mty1, mty2) ->
                 FunS(id, subst_modtype mty1 sub, subst_modtype mty2 sub)
+            | CodS(mty) -> CodS(subst_modtype mty sub)
         and subst_sig_item sub = function
             | ValS(id, vty) -> ValS(id, Core.subst_valtype vty sub)
             | TypeS(id, decl) -> TypeS(id, subst_typedecl decl sub)

@@ -451,6 +451,7 @@ and ModTyping :
             | Signature sg -> Signature(List.map (strengthen_spec path) sg)
             | FunS(id, arg, res) ->
                 FunS(id, arg, strengthen_modtype (AppP(path, IdentP id)) res)
+            | CodS mty -> CodS(strengthen_modtype path mty)
         and strengthen_spec path item =
             match item with
             | ValS(id, vty) -> item
@@ -470,6 +471,7 @@ and ModTyping :
             | FunS(id, arg, res) ->
                 FunS(id, nondep_modtype env param arg,
                         nondep_modtype (Env.add_module id arg env) param res)
+            | CodS mty -> CodS(nondep_modtype env param mty)
         and nondep_signature env param = function
             | [] -> []
             | item :: rem ->
@@ -498,6 +500,7 @@ and ModTyping :
             | FunS(param, arg, res) ->
                 check_modtype env arg;
                 check_modtype (Env.add_module param arg env) res
+            | CodS mty -> check_modtype env mty
         and check_signature env seen = function
             | [] -> ()
             | ValS(id, vty) :: rem ->
@@ -562,6 +565,30 @@ and ModTyping :
                 check_modtype env mty;
                 modtype_match env (type_module env modl) mty;
                 mty
+            | CodM(modl) ->
+                let mty = type_module env modl in
+                begin
+                match mty with
+                | CodS _ -> error "nested brackets"
+                | _ -> CodS(mty)
+                end
+            | EscM(modl) ->
+                let mty_code = type_module env modl in
+                begin
+                match mty_code with
+                | CodS mty -> mty
+                | _ -> error "an escape may appear only within brackets"
+                end
+            | RunM(modl, mty) ->
+                check_modtype env mty;
+                let mty_code = type_module env modl in
+                begin
+                match mty_code with
+                | CodS mty' -> 
+                    modtype_match env mty' mty;
+                    mty
+                | _ -> error "a code of a module is expected for an argument of Runmod"
+                end
         and type_structure env seen = function
             | [] -> []
             | stritem :: rem ->
@@ -595,6 +622,7 @@ and ModTyping :
                 FunS(param, 
                     eliminate_module env arg, 
                     eliminate_module (Env.add_module param arg env) res)
+            | CodS mty -> CodS(eliminate_module env mty)
         and eliminate_signature env = function
             | [] -> []
             | ValS(id, vty) as v :: rem ->

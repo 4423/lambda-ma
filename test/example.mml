@@ -50,3 +50,10 @@ let rec f = fun n ->
 let c1 = .<1+2>.
 let c2 = .<.~c1>.
 let c3 = Runcode.run c1
+
+module C1 = .<< struct 
+  type t = int
+  let f = fun x -> x + 10
+end >>.
+module C2 = .<< .~~C1 >>.
+module C3 = Runmod(C1 : sig end)

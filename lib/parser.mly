@@ -220,6 +220,9 @@ modulexpr:
   | modulexpr LPAREN modulexpr RPAREN { Mod.AppM($1, $3) }
   | LPAREN modulexpr RPAREN           { $2 }
   | modulexpr COLON moduletype        { Mod.Constraint($1, $3) }
+  | LMCOD modulexpr RMCOD             { Mod.CodM($2) }
+  | MESC modulexpr                    { Mod.EscM($2) }
+  | MRUN LPAREN modulexpr COLON moduletype RPAREN { Mod.RunM($3, $5) }
 ;
 structure:
     /*nothing*/                       { [] }
@@ -245,6 +248,7 @@ moduletype:
     SIG signature END               { Mod.Signature(List.rev $2) }
   | FUNCTOR LPAREN CON COLON moduletype RPAREN ARROW moduletype
                                     { Mod.FunS(Ident.create $3, $5, $8) }
+  | moduletype MCOD                 { Mod.CodS($1) }
   | LPAREN moduletype RPAREN        { $2 }
 ;
 signature:

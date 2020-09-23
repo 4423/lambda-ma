@@ -79,6 +79,8 @@ let rec print_modtype = function
         print_string ": "; print_modtype arg; print_string ")";
         print_space(); print_string "-> "; print_modtype body;
         close_box()
+    | CodS mty ->
+        print_modtype mty; print_string " mcod"
 and print_signature sg =
     List.iter (fun item -> print_space(); print_signature_item item) sg
 and print_signature_item = function
