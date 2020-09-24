@@ -82,7 +82,7 @@ let main() =
   try
     let prog = parse_file "./test/example.mml" in
     let scoped_prog = ModScoping.scope_module 0 !init_scope prog in
-    let mty = ModTyping.type_module !init_env scoped_prog in
+    let mty = ModTyping.type_module 0 !init_env scoped_prog in
     Printer.f mty;
     exit 0
   with

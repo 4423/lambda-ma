@@ -66,7 +66,7 @@ module Subst =
     end
 
 
-
+type level = int
 
 module Core =
     struct

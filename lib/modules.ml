@@ -87,8 +87,8 @@ module rec Env :
 and CoreTyping :
     sig
         (* Typing functions *)
-        val type_term: Env.t -> Core.term -> Core.val_type
-        val type_term_rec: Env.t -> Ident.t -> Core.term -> Core.val_type
+        val type_term: level -> Env.t -> Core.term -> Core.val_type
+        val type_term_rec: level -> Env.t -> Ident.t -> Core.term -> Core.val_type
         val kind_deftype: Env.t -> Core.def_type -> Core.kind
         val check_valtype: Env.t -> Core.val_type -> unit
         val check_kind: Env.t -> Core.kind -> unit
@@ -242,45 +242,51 @@ and CoreTyping :
         let path_csp = IdentP ident_csp
         let csp_type t = Typeconstr(path_csp, [t])
 
-        let rec infer_type env = function
+        let rec infer_type lv env = function
             | Constant n -> int_type
             | Longident path -> instance (Env.find_value path env)
             | FunE(param, body) ->
                 let type_param = unknown() in
                 let type_body =
-                infer_type (Env.add_value param (trivial_scheme type_param) env) 
+                infer_type lv (Env.add_value param (trivial_scheme type_param) env) 
                             body in
                 arrow_type type_param type_body
             | AppE(funct, arg) ->
-                let type_funct = infer_type env funct in
-                let type_arg = infer_type env arg in
+                let type_funct = infer_type lv env funct in
+                let type_arg = infer_type lv env arg in
                 let type_result = unknown() in
                 unify env type_funct (arrow_type type_arg type_result);
                 type_result
             | LetE(ident, arg, body) ->
                 begin_def();
-                let type_arg = infer_type env arg in
+                let type_arg = infer_type lv env arg in
                 end_def();
-                infer_type (Env.add_value ident (generalize type_arg) env) body
+                infer_type lv (Env.add_value ident (generalize type_arg) env) body
             | LetRecE(ident, arg, body) ->
                 begin_def();
                 let type_param = unknown() in
                 let env' = Env.add_value ident (trivial_scheme type_param) env in
-                let type_arg = infer_type env' arg in
+                let type_arg = infer_type lv env' arg in
                 end_def();
-                infer_type (Env.add_value ident (generalize type_arg) env) body
+                infer_type lv (Env.add_value ident (generalize type_arg) env) body
             | CodE t ->
-                let ty = infer_type env t in
+                if lv > 0 then error "brackets are allowed only at level 0"
+                else
+                let ty = infer_type (lv+1) env t in
                 code_type ty
             | EscE t ->
-                let ty = infer_type env t in
+                if lv < 1 then error "escape is allowed only at level 1"
+                else
+                let ty = infer_type (lv-1) env t in
                 begin
                 match ty with
                 | Typeconstr(path, [t]) when path = path_code -> t
                 | _ -> error "escape for non-code value"
                 end
             | RunE t ->
-                let ty = infer_type env t in
+                if lv > 0 then error "run is allowed only at level 0"
+                else
+                let ty = infer_type lv env t in
                 begin
                 match ty with
                 | Typeconstr(path, [t]) when path = path_code -> t
@@ -305,17 +311,17 @@ and CoreTyping :
 
         let check_kind env kind = ()
 
-        let type_term env term =
+        let type_term lv env term =
             begin_def();
-            let ty = infer_type env term in
+            let ty = infer_type lv env term in
             end_def();
             generalize ty
 
-        let type_term_rec env ident term =
+        let type_term_rec lv env ident term =
             begin_def();
             let type_param = unknown() in
             let env' = Env.add_value ident (trivial_scheme type_param) env in
-            let ty = infer_type env' term in
+            let ty = infer_type lv env' term in
             end_def();
             generalize ty
 
@@ -385,7 +391,7 @@ and CoreTyping :
 
 and ModTyping :
     sig
-        val type_module: Env.t -> Mod.mod_term -> Mod.mod_type
+        val type_module: level -> Env.t -> Mod.mod_term -> Mod.mod_type
         (* 公開する必要ある？ しかも引数の個数が違う *)
         (* val type_definition: Env.t -> Mod.definition -> Mod.specification *)
         val modtype_match: Env.t -> Mod.mod_type -> Mod.mod_type -> unit
@@ -534,22 +540,26 @@ and ModTyping :
                 check_signature (Env.add_module id mty env) 
                                 (Ident.name id :: seen) rem
 
-        let rec type_module env = function
+        let rec type_module lv env = function
             | Longident path ->
                 strengthen_modtype path (Env.find_module path env)
             | Structure str ->
-                Signature(type_structure env [] str)
+                Signature(type_structure lv env [] str)
             | FunM(param, mty, body) ->
+                if lv > 0 then error "functor definitions are allowed only at level 0"
+                else
                 check_modtype env mty;
                 FunS(param, mty,
-                    type_module (Env.add_module param mty env) body)
+                    type_module lv (Env.add_module param mty env) body)
             | AppM(funct, arg) ->
                 (* The relaxed typing rule for functor applications,
                     as described in section 5.5 *)
+                if lv > 0 then error "functor applications are allowed only at level 0"
+                else
                 begin
-                match type_module env funct with
+                match type_module lv env funct with
                 | FunS(param, mty_param, mty_res) ->
-                    let mty_arg = type_module env arg in
+                    let mty_arg = type_module lv env arg in
                     modtype_match env mty_arg mty_param;
                     begin
                     match arg with
@@ -569,25 +579,31 @@ and ModTyping :
                 end
             | Constraint(modl, mty) ->
                 check_modtype env mty;
-                modtype_match env (type_module env modl) mty;
+                modtype_match env (type_module lv env modl) mty;
                 mty
             | CodM(modl) ->
-                let mty = type_module env modl in
+                if lv > 0 then error "brackets are allowed only at level 0"
+                else
+                let mty = type_module (lv+1) env modl in
                 begin
                 match mty with
                 | CodS _ -> error "nested brackets"
                 | _ -> CodS(mty)
                 end
             | EscM(modl) ->
-                let mty_code = type_module env modl in
+                if lv < 1 then error "escape is allowed only at level 1"
+                else
+                let mty_code = type_module (lv-1) env modl in
                 begin
                 match mty_code with
                 | CodS mty -> mty
                 | _ -> error "an escape may appear only within brackets"
                 end
             | RunM(modl, mty) ->
+                if lv > 0 then error "Runmod is allowed only at level 0"
+                else
                 check_modtype env mty;
-                let mty_code = type_module env modl in
+                let mty_code = type_module lv env modl in
                 begin
                 match mty_code with
                 | CodS mty' -> 
@@ -595,24 +611,24 @@ and ModTyping :
                     mty
                 | _ -> error "a code of a module is expected for an argument of Runmod"
                 end
-        and type_structure env seen = function
+        and type_structure lv env seen = function
             | [] -> []
             | stritem :: rem ->
-                let (sigitem, seen') = type_definition env seen stritem in
-                sigitem :: type_structure (Env.add_spec sigitem env) seen' rem
-        and type_definition env seen = function
+                let (sigitem, seen') = type_definition lv env seen stritem in
+                sigitem :: type_structure lv (Env.add_spec sigitem env) seen' rem
+        and type_definition lv env seen = function
             | LetM(id, term) ->
                 if List.mem (Ident.name id) seen
                 then error "repeated value name";
-                (ValS(id, CT.type_term env term), Ident.name id :: seen)
+                (ValS(id, CT.type_term lv env term), Ident.name id :: seen)
             | LetRecM(id, term) ->
                 if List.mem (Ident.name id) seen
                 then error "repeated value name";
-                (ValS(id, CT.type_term_rec env id term), Ident.name id :: seen)
+                (ValS(id, CT.type_term_rec lv env id term), Ident.name id :: seen)
             | ModM(id, modl) ->
                 if List.mem (Ident.name id) seen
                 then error "repeated module name";
-                (ModS(id, type_module env modl), Ident.name id :: seen)
+                (ModS(id, type_module lv env modl), Ident.name id :: seen)
             | TypeM(id, kind, typ) ->
                 if List.mem (Ident.name id) seen
                 then error "repeated type name";

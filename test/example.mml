@@ -59,3 +59,10 @@ module C1 = .<< struct
 end >>.
 module C2 = .<< .~~C1 >>.
 module C3 = Runmod(C1 : sig end)
+
+(* don't allow definition and application of functor at level 1
+module C4 = .<< struct
+  module F = functor(X: sig end) -> X
+  module A = F(struct end)
+end >>.
+*)
