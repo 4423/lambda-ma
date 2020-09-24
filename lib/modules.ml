@@ -281,6 +281,7 @@ and CoreTyping :
                 begin
                 match ty with
                 | Typeconstr(path, [t]) when path = path_code -> t
+                | Var {repres = Some(Typeconstr(path, [t])) } when path = path_code -> t
                 | _ -> error "escape for non-code value"
                 end
             | RunE t ->
@@ -290,6 +291,7 @@ and CoreTyping :
                 begin
                 match ty with
                 | Typeconstr(path, [t]) when path = path_code -> t
+                | Var {repres = Some(Typeconstr(path, [t])) } when path = path_code -> t
                 | _ -> error "run for non-code value"
                 end
 

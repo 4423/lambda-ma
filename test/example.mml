@@ -50,6 +50,8 @@ let rec f = fun n ->
 let c1 = .<1+2>.
 let c2 = .<.~c1>.
 let c3 = Runcode.run c1
+let c4 = Runcode.run (let a = ((fun x -> .<1>.) 0) in a)
+let c5 = .<.~( (fun x -> .<1>.) 0 )>.
 
 type u = int code
 module C1 = .<< struct 
