@@ -68,3 +68,8 @@ module C4 = .<< struct
   module A = F(struct end)
 end >>.
 *)
+
+module C5 = functor(X : sig end mcod) -> X
+module C6 = .<< struct end >>.
+module C7 = C5(C6)
+module C8 = .<< .~~( (functor(X : sig end mcod) -> X) (.<< struct end >>.) ) >>.

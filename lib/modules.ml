@@ -415,6 +415,8 @@ and ModTyping :
                 let res1' = Mod.subst_modtype res1 subst in
                 modtype_match env arg2 arg1;
                 modtype_match (Env.add_module param2 arg2 env) res1' res2
+            | (CodS mty1, CodS mty2) ->
+                modtype_match env mty1 mty2
             | (_, _) ->
                 error "module type mismatch"
         and pair_signature_components sig1 sig2 =
