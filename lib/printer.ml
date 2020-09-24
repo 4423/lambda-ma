@@ -36,6 +36,8 @@ let rec print_simple_type ty =
         print_simple_type t2
     | Typeconstr(path, [t]) when path = CoreTyping.path_code ->
         print_simple_type t; print_string " code"
+    | Typeconstr(path, [t]) when path = CoreTyping.path_csp ->
+        print_string ".%"; print_simple_type t
     | Typeconstr(path, []) ->
         print_path path
     | Typeconstr(path, [t]) ->

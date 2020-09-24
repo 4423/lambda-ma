@@ -167,6 +167,8 @@ simpletype:
   | path_var                    { Core.Typeconstr($1, []) }
   | simpletype path_var         { Core.Typeconstr($2, [$1]) }
   | LPAREN simpletypelist RPAREN path_var { Core.Typeconstr($4, List.rev $2) }
+  | simpletype CODE             { Core.Typeconstr(path_code, [$1]) }
+  | CSP simpletype              { Core.Typeconstr(path_csp, [$2]) }
 ;
 simpletypelist:
     simpletype { [$1] }

@@ -121,6 +121,12 @@ module Scoping =
                 RunE(scope_term lv sc t)
         let rec scope_simple_type lv sc = function
             | Var v -> Var v
+            | Typeconstr(path, args) when path = Modules.CoreTyping.path_csp ->
+                Typeconstr(Scope.type_path path (lv-1) sc,
+                            List.map (scope_simple_type (lv-1) sc) args)
+            | Typeconstr(path, args) when path = Modules.CoreTyping.path_code ->
+                Typeconstr(Scope.type_path path (lv+1) sc,
+                            List.map (scope_simple_type (lv+1) sc) args)
             | Typeconstr(path, args) ->
                 Typeconstr(Scope.type_path path lv sc,
                             List.map (scope_simple_type lv sc) args)

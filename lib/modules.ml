@@ -108,11 +108,14 @@ and CoreTyping :
         val ident_arrow: Ident.t
         val ident_int: Ident.t
         val ident_star: Ident.t
+        val ident_code: Ident.t
+        val ident_csp: Ident.t
         val int_type: Core.simple_type
         val arrow_type: Core.simple_type -> Core.simple_type -> Core.simple_type
         val path_arrow: path
         val path_star: path
         val path_code: path
+        val path_csp: path
         val newvar: unit -> Core.type_variable
         val begin_def: unit -> unit
         val end_def: unit -> unit
@@ -235,6 +238,9 @@ and CoreTyping :
         let ident_code = Ident.create "code"
         let path_code = IdentP ident_code
         let code_type t = Typeconstr(path_code, [t])
+        let ident_csp = Ident.create "%"
+        let path_csp = IdentP ident_csp
+        let csp_type t = Typeconstr(path_csp, [t])
 
         let rec infer_type env = function
             | Constant n -> int_type
