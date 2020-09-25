@@ -6,6 +6,7 @@
 
 %{
 
+open Identifier
 open Syntax
 open Modules
 open CoreTyping
