@@ -141,7 +141,7 @@ module Print = struct
         | Constant c              -> string_of_int c
         | Longident p             -> path p
         | FunE (id, term)         -> sprintf "fun %s -> %s" (Ident.name id) (core_term term)
-        | AppE (funct, arg)       -> sprintf "(%s) %s" (core_term funct) (core_term arg)
+        | AppE (funct, arg)       -> sprintf "((%s) %s)" (core_term funct) (core_term arg)
         | LetE (id, arg, body)    -> sprintf "let %s = %s in %s" (Ident.name id) (core_term arg) (core_term body)
         | LetRecE (id, arg, body) -> sprintf "let rec %s = %s in %s" (Ident.name id) (core_term arg) (core_term body)
         | IfE (t1, t2, t3)        -> sprintf "if %s then %s else %s" (core_term t1) (core_term t2) (core_term t3)
