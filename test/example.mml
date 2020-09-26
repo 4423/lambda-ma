@@ -73,3 +73,15 @@ module C5 = functor(X : sig end mcod) -> X
 module C6 = .<< struct end >>.
 module C7 = C5(C6)
 module C8 = .<< .~~( (functor(X : sig end mcod) -> X) (.<< struct end >>.) ) >>.
+
+module C9 = .<< (struct
+  type t = int
+  let x = 0
+  let y = x
+  module A = struct let x = 1 end
+  let z = A.x
+end : sig 
+  type t
+  val x : int
+  val y : t
+end) >>.

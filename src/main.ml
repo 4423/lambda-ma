@@ -85,6 +85,8 @@ let main() =
     let scoped_prog = ModScoping.scope_module 0 !init_scope prog in
     let mty = ModTyping.type_module 0 !init_env scoped_prog in
     Printer.f mty;
+    let translated_prog = Translation.f scoped_prog in
+    print_string @@ Target.Print.f translated_prog;
     exit 0
   with
     Error s ->
