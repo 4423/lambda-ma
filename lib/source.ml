@@ -64,11 +64,30 @@ module Syntax = struct
                 { mutable repres: simple_type option;    (* representative, for union-find *)
                     mutable level: int }                 (* binding level, for generalization *)
 
+            let ident_eq = Ident.create "=="
+            let ident_neq = Ident.create "<>"
+            let ident_lt = Ident.create "<"
+            let ident_lteq = Ident.create "<="
+            let ident_gt = Ident.create ">"
+            let ident_gteq = Ident.create ">="
+            let ident_plus = Ident.create "+"
+            let ident_minus = Ident.create "-"
+            let ident_star = Ident.create "*"
+            let ident_slash = Ident.create "/"
+            let ident_comma = Ident.create ","
+            let ident_fst = Ident.create "fst"
+            let ident_snd = Ident.create "snd"
+
+            let val_ids = [
+                ident_eq; ident_neq; ident_lt; ident_lteq; ident_gt; ident_gteq; 
+                ident_plus; ident_minus; ident_star; ident_slash;
+                ident_comma; ident_fst; ident_snd
+            ]
+
             let ident_arrow = Ident.create "->"
             let path_arrow = IdentP ident_arrow
             let arrow_type t1 t2 = Typeconstr(path_arrow, [t1;t2])
 
-            let ident_star = Ident.create "*"
             let path_star = IdentP ident_star
             let star_type t1 t2 = Typeconstr(path_star, [t1;t2])
 
@@ -91,6 +110,12 @@ module Syntax = struct
             let ident_csp = Ident.create "%"
             let path_csp = IdentP ident_csp
             let csp_type t = Typeconstr(path_csp, [t])
+
+            let type_ids = [
+                ident_arrow; ident_star; 
+                ident_int; ident_bool; ident_string; 
+                ident_code; ident_csp
+            ]
 
             type val_type =
                 { quantif: type_variable list;           (* quantified variables *)

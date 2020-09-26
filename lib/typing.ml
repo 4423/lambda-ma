@@ -653,3 +653,50 @@ and ModTyping :
             | ModS(id, mty) as m :: rem ->
                 m :: eliminate_signature (Env.add_module id mty env) rem
     end
+
+let init_env = ref Env.empty
+
+let enter_type id decl =
+    init_env := Env.add_type id decl !init_env
+
+let enter_val id ty =
+    init_env := Env.add_value id ty !init_env
+
+let _ =
+    let open Core in
+    enter_type ident_arrow {Mod.kind = {arity = 2}; Mod.manifest = None};
+    enter_type ident_star {Mod.kind = {arity = 2}; Mod.manifest = None};
+    enter_type ident_int {Mod.kind = {arity = 0}; Mod.manifest = None};
+    enter_type ident_bool {Mod.kind = {arity = 0}; Mod.manifest = None};
+    enter_type ident_string {Mod.kind = {arity = 0}; Mod.manifest = None};
+    enter_type ident_code {Mod.kind = {arity = 1}; Mod.manifest = None};
+    enter_type ident_csp {Mod.kind = {arity = 1}; Mod.manifest = None};
+    List.iter
+        (fun id ->
+            enter_val id
+            { quantif = [];
+              body = arrow_type int_type (arrow_type int_type bool_type)})
+        [ident_eq; ident_neq; ident_lt; ident_lteq; ident_gt; ident_gteq]; 
+    List.iter
+        (fun id ->
+            enter_val id
+            { quantif = [];
+              body = arrow_type int_type (arrow_type int_type int_type)})
+        [ident_plus; ident_minus; ident_star; ident_slash]; 
+    let alpha = CoreTyping.newvar() and beta = CoreTyping.newvar() in
+    let talpha = Var alpha and tbeta = Var beta in
+    enter_val ident_comma
+        { quantif = [alpha;beta];
+          body = arrow_type talpha (arrow_type tbeta
+                    (Typeconstr(path_star, [talpha; tbeta]))) };
+    enter_val ident_fst
+        { quantif = [alpha;beta];
+          body = arrow_type
+                    (Typeconstr(path_star, [talpha; tbeta])) talpha };
+    enter_val ident_snd
+        { quantif = [alpha;beta];
+          body = arrow_type
+                    (Typeconstr(path_star, [talpha; tbeta])) tbeta }
+
+let f : Mod.mod_term -> Mod.mod_type = 
+        fun modl -> ModTyping.type_module 0 !init_env modl

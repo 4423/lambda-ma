@@ -1,59 +1,4 @@
-open Identifier
-open Source.Syntax
-open Core
-open Typing
-open CoreTyping
-open Scope
 open Error
-
-let init_scope = ref StagedScope.empty
-let init_env = ref Env.empty
-
-let enter_type id decl =
-  init_scope := StagedScope.enter_type id 0 !init_scope;
-  init_scope := StagedScope.enter_type id 1 !init_scope;
-  init_env := Env.add_type id decl !init_env
-
-let enter_val name ty =
-  let id = Ident.create name in
-  init_scope := StagedScope.enter_value id 0 !init_scope;
-  init_scope := StagedScope.enter_value id 1 !init_scope;
-  init_env := Env.add_value id ty !init_env
-
-let _ =
-  enter_type ident_arrow {Mod.kind = {Core.arity = 2}; Mod.manifest = None};
-  enter_type ident_star {Mod.kind = {Core.arity = 2}; Mod.manifest = None};
-  enter_type ident_int {Mod.kind = {Core.arity = 0}; Mod.manifest = None};
-  enter_type ident_bool {Mod.kind = {Core.arity = 0}; Mod.manifest = None};
-  enter_type ident_string {Mod.kind = {Core.arity = 0}; Mod.manifest = None};
-  enter_type ident_code {Mod.kind = {Core.arity = 1}; Mod.manifest = None};
-  enter_type ident_csp {Mod.kind = {Core.arity = 1}; Mod.manifest = None};
-  List.iter
-    (fun name ->
-        enter_val name
-          { Core.quantif = [];
-            Core.body = arrow_type int_type (arrow_type int_type bool_type)})
-    ["=="; "<>"; "<"; "<="; ">"; ">="];
-  List.iter
-    (fun name ->
-        enter_val name
-          { Core.quantif = [];
-            Core.body = arrow_type int_type (arrow_type int_type int_type)})
-    ["+"; "-"; "*"; "/"];
-  let alpha = newvar() and beta = newvar() in
-  let talpha = Core.Var alpha and tbeta = Core.Var beta in
-  enter_val ","
-    { Core.quantif = [alpha;beta];
-      Core.body = arrow_type talpha (arrow_type tbeta
-                  (Core.Typeconstr(path_star, [talpha; tbeta]))) };
-  enter_val "fst"
-    { Core.quantif = [alpha;beta];
-      Core.body = arrow_type
-                  (Core.Typeconstr(path_star, [talpha; tbeta])) talpha };
-  enter_val "snd"
-    { Core.quantif = [alpha;beta];
-      Core.body = arrow_type
-                  (Core.Typeconstr(path_star, [talpha; tbeta])) tbeta }
 
 let parse lexbuf =
   Parser.main Lexer.token lexbuf
@@ -75,8 +20,8 @@ let parse_file filepath =
 let main() =
   try
     let prog = parse_file "./test/example.mml" in
-    let scoped_prog = ModScoping.scope_module 0 !init_scope prog in
-    let mty = ModTyping.type_module 0 !init_env scoped_prog in
+    let scoped_prog = Scope.f prog in
+    let mty = Typing.f scoped_prog in
     Printer.f mty;
     let translated_prog = Translation.f scoped_prog in
     print_string @@ Target.Print.f translated_prog;

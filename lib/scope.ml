@@ -196,3 +196,21 @@ module ModScoping =
                 let c = ModM(id, scope_module lv sc m) in
                 c :: scope_structure lv (Scope.enter_module id lv sc) rem
     end
+
+
+let init_scope = ref StagedScope.empty
+
+let enter_type id =
+    init_scope := StagedScope.enter_type id 0 !init_scope;
+    init_scope := StagedScope.enter_type id 1 !init_scope
+
+let enter_val id =
+    init_scope := StagedScope.enter_value id 0 !init_scope;
+    init_scope := StagedScope.enter_value id 1 !init_scope
+
+let _ =
+    List.iter enter_type Core.type_ids;
+    List.iter enter_val Core.val_ids
+
+let f : Mod.mod_term -> Mod.mod_term = 
+        fun modl -> ModScoping.scope_module 0 !init_scope modl
