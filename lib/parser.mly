@@ -164,13 +164,13 @@ valbind:
 
 simpletype:
     QUOTE VAR             { Core.Var(find_type_variable $2) }
-  | simpletype ARROW simpletype { Core.Typeconstr(path_arrow, [$1; $3]) }
-  | simpletype STAR simpletype  { Core.Typeconstr(path_star, [$1; $3]) }
+  | simpletype ARROW simpletype { Core.Typeconstr(Core.path_arrow, [$1; $3]) }
+  | simpletype STAR simpletype  { Core.Typeconstr(Core.path_star, [$1; $3]) }
   | path_var                    { Core.Typeconstr($1, []) }
   | simpletype path_var         { Core.Typeconstr($2, [$1]) }
   | LPAREN simpletypelist RPAREN path_var { Core.Typeconstr($4, List.rev $2) }
-  | simpletype CODE             { Core.Typeconstr(path_code, [$1]) }
-  | CSP simpletype              { Core.Typeconstr(path_csp, [$2]) }
+  | simpletype CODE             { Core.Typeconstr(Core.path_code, [$1]) }
+  | CSP simpletype              { Core.Typeconstr(Core.path_csp, [$2]) }
 ;
 simpletypelist:
     simpletype { [$1] }

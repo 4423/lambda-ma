@@ -63,6 +63,35 @@ module Syntax = struct
             and type_variable =
                 { mutable repres: simple_type option;    (* representative, for union-find *)
                     mutable level: int }                 (* binding level, for generalization *)
+
+            let ident_arrow = Ident.create "->"
+            let path_arrow = IdentP ident_arrow
+            let arrow_type t1 t2 = Typeconstr(path_arrow, [t1;t2])
+
+            let ident_star = Ident.create "*"
+            let path_star = IdentP ident_star
+            let star_type t1 t2 = Typeconstr(path_star, [t1;t2])
+
+            let ident_int = Ident.create "int"
+            let path_int = IdentP ident_int
+            let int_type = Typeconstr(path_int, [])
+            
+            let ident_bool = Ident.create "bool"
+            let path_bool = IdentP ident_bool
+            let bool_type = Typeconstr(path_bool, [])
+
+            let ident_string = Ident.create "string"
+            let path_string = IdentP ident_string
+            let string_type = Typeconstr(path_string, [])
+
+            let ident_code = Ident.create "code"
+            let path_code = IdentP ident_code
+            let code_type t = Typeconstr(path_code, [t])
+
+            let ident_csp = Ident.create "%"
+            let path_csp = IdentP ident_csp
+            let csp_type t = Typeconstr(path_csp, [t])
+
             type val_type =
                 { quantif: type_variable list;           (* quantified variables *)
                     body: simple_type }                  (* body of type scheme *)

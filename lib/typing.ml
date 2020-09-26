@@ -106,20 +106,6 @@ and CoreTyping :
 
         (* 外部から使うために追加。 open してもシグネチャに書いてある関数しか使えない *)
         val typerepr: Core.simple_type -> Core.simple_type
-        val ident_arrow: Ident.t
-        val ident_int: Ident.t
-        val ident_star: Ident.t
-        val ident_bool: Ident.t
-        val ident_string: Ident.t
-        val ident_code: Ident.t
-        val ident_csp: Ident.t
-        val int_type: Core.simple_type
-        val bool_type: Core.simple_type
-        val arrow_type: Core.simple_type -> Core.simple_type -> Core.simple_type
-        val path_arrow: path
-        val path_star: path
-        val path_code: path
-        val path_csp: path
         val newvar: unit -> Core.type_variable
         val begin_def: unit -> unit
         val end_def: unit -> unit
@@ -230,27 +216,6 @@ and CoreTyping :
             match vty.quantif with
             | [] -> vty.body
             | vars -> subst_vars (List.map (fun v -> (v, unknown())) vars) vty.body
-
-        let ident_arrow = Ident.create "->"
-        let path_arrow = IdentP ident_arrow
-        let arrow_type t1 t2 = Typeconstr(path_arrow, [t1;t2])
-        let ident_int = Ident.create "int"
-        let path_int = IdentP ident_int
-        let int_type = Typeconstr(path_int, [])
-        let ident_bool = Ident.create "bool"
-        let path_bool = IdentP ident_bool
-        let bool_type = Core.Typeconstr(path_bool, [])
-        let ident_string = Ident.create "string"
-        let path_string = IdentP ident_string
-        let string_type = Core.Typeconstr(path_string, [])
-        let ident_star = Ident.create "*"
-        let path_star = IdentP ident_star
-        let ident_code = Ident.create "code"
-        let path_code = IdentP ident_code
-        let code_type t = Typeconstr(path_code, [t])
-        let ident_csp = Ident.create "%"
-        let path_csp = IdentP ident_csp
-        let csp_type t = Typeconstr(path_csp, [t])
 
         let rec infer_type lv env = function
             | IntE n -> int_type

@@ -29,15 +29,15 @@ let rec print_simple_type ty =
             variable_names := (v, s) :: !variable_names;
             s in
         print_string "'"; print_string name
-    | Typeconstr(path, [t1;t2]) when path = CoreTyping.path_arrow ->
+    | Typeconstr(path, [t1;t2]) when path = path_arrow ->
         print_simple_type t1; print_string " -> ";
         print_simple_type t2
-    | Typeconstr(path, [t1;t2]) when path = CoreTyping.path_star ->
+    | Typeconstr(path, [t1;t2]) when path = path_star ->
         print_simple_type t1; print_string " * ";
         print_simple_type t2
-    | Typeconstr(path, [t]) when path = CoreTyping.path_code ->
+    | Typeconstr(path, [t]) when path = path_code ->
         print_simple_type t; print_string " code"
-    | Typeconstr(path, [t]) when path = CoreTyping.path_csp ->
+    | Typeconstr(path, [t]) when path = path_csp ->
         print_string ".%"; print_simple_type t
     | Typeconstr(path, []) ->
         print_path path

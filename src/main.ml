@@ -1,5 +1,6 @@
 open Identifier
 open Source.Syntax
+open Core
 open Typing
 open CoreTyping
 open Scope
