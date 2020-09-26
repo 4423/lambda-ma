@@ -249,7 +249,7 @@ and CoreTyping :
         let csp_type t = Typeconstr(path_csp, [t])
 
         let rec infer_type lv env = function
-            | Constant n -> int_type
+            | IntE n -> int_type
             | Longident path -> instance (Env.find_value path env)
             | FunE(param, body) ->
                 let type_param = unknown() in

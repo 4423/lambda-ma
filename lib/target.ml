@@ -10,7 +10,7 @@ module Syntax = struct
     module Core = 
         struct
             type term =
-                | Constant of int                       (* integer constants *)
+                | IntE of int                           (* integer constants *)
                 | Longident of path                     (* id or mod.mod...id *)
                 | FunE of Ident.t * term                (* fun id -> expr *)
                 | AppE of term * term                   (* expr(expr) *)
@@ -138,7 +138,7 @@ module Print = struct
         | Some dty -> Some (def_type dty)
 
     and core_term = function
-        | Constant c              -> string_of_int c
+        | IntE c                  -> string_of_int c
         | Longident p             -> path p
         | FunE (id, term)         -> sprintf "fun %s -> %s" (Ident.name id) (core_term term)
         | AppE (funct, arg)       -> sprintf "((%s) %s)" (core_term funct) (core_term arg)

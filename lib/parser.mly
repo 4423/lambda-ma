@@ -149,7 +149,7 @@ valexpr1:
 ;
 valexpr0:
     path_var  { Core.Longident($1) }
-  | INT  { Core.Constant $1 }
+  | INT                   { Core.IntE $1 }
   | LPAREN valexpr RPAREN { $2 }
 ;
 valbind:

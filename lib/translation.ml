@@ -112,7 +112,7 @@ and head = function
     | T.AppP _      -> error "undefined"
 
 and core_term lv d = function
-    | SC.Constant c              -> TC.Constant c
+    | SC.IntE c                  -> TC.IntE c
     | SC.Longident p ->
         let p' = path p in
         let long = TC.Longident p' in

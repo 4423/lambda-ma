@@ -103,7 +103,7 @@ module Scoping =
         module Scope = StagedScope
         open Core
         let rec scope_term lv sc = function
-            | Constant n -> Constant n
+            | IntE n -> IntE n
             | Longident path -> Longident(Scope.value_path path lv sc)
             | FunE(id, body) ->
                 FunE(id, scope_term lv (Scope.enter_value id lv sc) body)
