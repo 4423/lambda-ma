@@ -8,7 +8,7 @@
 
 open Identifier
 open Source.Syntax
-open Modules
+open Typing
 open CoreTyping
 
 let variables = ref ([] : (string * Core.type_variable) list)

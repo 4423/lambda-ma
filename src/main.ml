@@ -1,6 +1,6 @@
 open Identifier
 open Source.Syntax
-open Modules
+open Typing
 open CoreTyping
 open Scope
 open Error

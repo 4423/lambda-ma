@@ -1,5 +1,5 @@
 open Identifier
-open Modules
+open Typing
 open Format
 open Source.Syntax
 open Core

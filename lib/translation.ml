@@ -141,7 +141,7 @@ and core_term lv d = function
 
 and core_type lv = function
     | SC.Var tvar           -> TC.Var (type_variable lv tvar)
-    | SC.Typeconstr (p, [t]) when p = Modules.CoreTyping.path_csp -> core_type lv t
+    | SC.Typeconstr (p, [t]) when p = Typing.CoreTyping.path_csp -> core_type lv t
     | SC.Typeconstr (p, ts) -> TC.Typeconstr (path p, List.map (fun t -> core_type lv t) ts)
 
 and type_variable lv tvar =
