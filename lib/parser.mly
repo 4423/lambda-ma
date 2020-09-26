@@ -7,7 +7,7 @@
 %{
 
 open Identifier
-open Syntax
+open Source.Syntax
 open Modules
 open CoreTyping
 
@@ -100,12 +100,12 @@ let binop op arg1 arg2 =
 %right STAR SLASH
 
 %start implementation
-%type <Syntax.Mod.mod_term> implementation
+%type <Source.Syntax.Mod.mod_term> implementation
 %start phrase
-%type <Syntax.Mod.definition> phrase
+%type <Source.Syntax.Mod.definition> phrase
 
 %start main
-%type <Syntax.Mod.mod_term> main
+%type <Source.Syntax.Mod.mod_term> main
 
 %%
 

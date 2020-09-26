@@ -1,5 +1,5 @@
 open Identifier
-open Syntax
+open Source.Syntax
 open Modules
 open CoreTyping
 open Scope
