@@ -11,6 +11,8 @@ module Syntax = struct
         struct
             type term =
                 | IntE of int                           (* integer constants *)
+                | StrE of string                        (* string constants *)
+                | BoolE of bool                         (* boolean constants *)
                 | Longident of path                     (* id or mod.mod...id *)
                 | FunE of Ident.t * term                (* fun id -> expr *)
                 | AppE of term * term                   (* expr(expr) *)
@@ -139,6 +141,8 @@ module Print = struct
 
     and core_term = function
         | IntE c                  -> string_of_int c
+        | StrE s                  -> sprintf "\"%s\"" s
+        | BoolE b                 -> if b then "true" else "false"
         | Longident p             -> path p
         | FunE (id, term)         -> sprintf "fun %s -> %s" (Ident.name id) (core_term term)
         | AppE (funct, arg)       -> sprintf "((%s) %s)" (core_term funct) (core_term arg)

@@ -46,6 +46,8 @@ module Syntax = struct
         struct
             type term =
                 | IntE of int                           (* integer constants *)
+                | StrE of string                        (* string constants *)
+                | BoolE of bool                         (* boolean constants *)
                 | Longident of path                      (* id or mod.mod...id *)
                 | FunE of Ident.t * term             (* fun id -> expr *)
                 | AppE of term * term                   (* expr(expr) *)

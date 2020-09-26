@@ -150,6 +150,9 @@ valexpr1:
 valexpr0:
     path_var  { Core.Longident($1) }
   | INT                   { Core.IntE $1 }
+  | STR                   { Core.StrE $1 }
+  | TRUE                  { Core.BoolE(true) }
+  | FALSE                 { Core.BoolE(false) }
   | LPAREN valexpr RPAREN { $2 }
 ;
 valbind:

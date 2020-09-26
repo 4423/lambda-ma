@@ -24,10 +24,9 @@ let _ =
   enter_type ident_star {Mod.kind = {Core.arity = 2}; Mod.manifest = None};
   enter_type ident_int {Mod.kind = {Core.arity = 0}; Mod.manifest = None};
   enter_type ident_bool {Mod.kind = {Core.arity = 0}; Mod.manifest = None};
+  enter_type ident_string {Mod.kind = {Core.arity = 0}; Mod.manifest = None};
   enter_type ident_code {Mod.kind = {Core.arity = 1}; Mod.manifest = None};
   enter_type ident_csp {Mod.kind = {Core.arity = 1}; Mod.manifest = None};
-  enter_val "false" { Core.quantif = []; Core.body = bool_type };
-  enter_val "true" { Core.quantif = []; Core.body = bool_type };
   List.iter
     (fun name ->
         enter_val name

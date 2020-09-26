@@ -110,6 +110,7 @@ and CoreTyping :
         val ident_int: Ident.t
         val ident_star: Ident.t
         val ident_bool: Ident.t
+        val ident_string: Ident.t
         val ident_code: Ident.t
         val ident_csp: Ident.t
         val int_type: Core.simple_type
@@ -239,6 +240,9 @@ and CoreTyping :
         let ident_bool = Ident.create "bool"
         let path_bool = IdentP ident_bool
         let bool_type = Core.Typeconstr(path_bool, [])
+        let ident_string = Ident.create "string"
+        let path_string = IdentP ident_string
+        let string_type = Core.Typeconstr(path_string, [])
         let ident_star = Ident.create "*"
         let path_star = IdentP ident_star
         let ident_code = Ident.create "code"
@@ -250,6 +254,8 @@ and CoreTyping :
 
         let rec infer_type lv env = function
             | IntE n -> int_type
+            | StrE s -> string_type
+            | BoolE b -> bool_type
             | Longident path -> instance (Env.find_value path env)
             | FunE(param, body) ->
                 let type_param = unknown() in

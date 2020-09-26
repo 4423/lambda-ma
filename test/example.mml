@@ -85,3 +85,9 @@ end : sig
   val x : int
   val y : t
 end) >>.
+
+let s1 = "str"
+type s2 = string
+let b1 = true
+let b2 = false
+type b3 = bool

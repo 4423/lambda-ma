@@ -113,6 +113,8 @@ and head = function
 
 and core_term lv d = function
     | SC.IntE c                  -> TC.IntE c
+    | SC.StrE s                  -> TC.StrE s
+    | SC.BoolE b                 -> TC.BoolE b
     | SC.Longident p ->
         let p' = path p in
         let long = TC.Longident p' in

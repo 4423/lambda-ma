@@ -104,6 +104,8 @@ module Scoping =
         open Core
         let rec scope_term lv sc = function
             | IntE n -> IntE n
+            | StrE s -> StrE s
+            | BoolE b -> BoolE b
             | Longident path -> Longident(Scope.value_path path lv sc)
             | FunE(id, body) ->
                 FunE(id, scope_term lv (Scope.enter_value id lv sc) body)
