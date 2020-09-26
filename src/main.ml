@@ -20,9 +20,6 @@ let enter_val name ty =
   init_env := Env.add_value id ty !init_env
 
 let _ =
-  let ident_bool = Ident.create "bool" in
-  let path_bool = IdentP ident_bool in
-  let bool_type = Core.Typeconstr(path_bool, []) in
   enter_type ident_arrow {Mod.kind = {Core.arity = 2}; Mod.manifest = None};
   enter_type ident_star {Mod.kind = {Core.arity = 2}; Mod.manifest = None};
   enter_type ident_int {Mod.kind = {Core.arity = 0}; Mod.manifest = None};
@@ -56,11 +53,7 @@ let _ =
   enter_val "snd"
     { Core.quantif = [alpha;beta];
       Core.body = arrow_type
-                  (Core.Typeconstr(path_star, [talpha; tbeta])) tbeta };
-  enter_val "conditional"
-    { Core.quantif = [alpha];
-      Core.body = arrow_type bool_type
-                          (arrow_type talpha (arrow_type talpha talpha)) }
+                  (Core.Typeconstr(path_star, [talpha; tbeta])) tbeta }
 
 let parse lexbuf =
   Parser.main Lexer.token lexbuf

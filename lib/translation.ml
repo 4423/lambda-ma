@@ -128,6 +128,7 @@ and core_term lv d = function
     | SC.AppE (funct, arg)       -> TC.AppE (core_term lv d funct, core_term lv d arg)
     | SC.LetE (id, arg, body)    -> TC.LetE (id, core_term lv d arg, core_term lv d body)
     | SC.LetRecE (id, arg, body) -> TC.LetRecE (id, core_term lv d arg, core_term lv d body)
+    | SC.IfE (t1, t2, t3)        -> TC.IfE (core_term lv d t1, core_term lv d t2, core_term lv d t3)
     | SC.CodE term ->
         if lv = 0 then TC.CodE (core_term (lv+1) d term)
         else error "brackets are allowed only at level 0"

@@ -49,6 +49,7 @@ module Core =
             | AppE of term * term                   (* expr(expr) *)
             | LetE of Ident.t * term * term           (* let id = expr in expr *)
             | LetRecE of Ident.t * term * term      (* let rec id = expr in expr *)
+            | IfE of term * term * term             (* if expr then expr else expr *)
             | CodE of term                          (* <expr> *)
             | EscE of term                          (* ~expr *)
             | RunE of term                          (* run expr *)

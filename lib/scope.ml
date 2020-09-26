@@ -114,6 +114,8 @@ module Scoping =
                 LetRecE(id, 
                     scope_term lv (Scope.enter_value id lv sc) t1, 
                     scope_term lv (Scope.enter_value id lv sc) t2)
+            | IfE(t1, t2, t3) ->
+                IfE(scope_term lv sc t1, scope_term lv sc t2, scope_term lv sc t3)
             | CodE t ->
                 CodE(scope_term (lv+1) sc t)
             | EscE t ->

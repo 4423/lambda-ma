@@ -109,9 +109,11 @@ and CoreTyping :
         val ident_arrow: Ident.t
         val ident_int: Ident.t
         val ident_star: Ident.t
+        val ident_bool: Ident.t
         val ident_code: Ident.t
         val ident_csp: Ident.t
         val int_type: Core.simple_type
+        val bool_type: Core.simple_type
         val arrow_type: Core.simple_type -> Core.simple_type -> Core.simple_type
         val path_arrow: path
         val path_star: path
@@ -234,6 +236,9 @@ and CoreTyping :
         let ident_int = Ident.create "int"
         let path_int = IdentP ident_int
         let int_type = Typeconstr(path_int, [])
+        let ident_bool = Ident.create "bool"
+        let path_bool = IdentP ident_bool
+        let bool_type = Core.Typeconstr(path_bool, [])
         let ident_star = Ident.create "*"
         let path_star = IdentP ident_star
         let ident_code = Ident.create "code"
@@ -270,6 +275,13 @@ and CoreTyping :
                 let type_arg = infer_type lv env' arg in
                 end_def();
                 infer_type lv (Env.add_value ident (generalize type_arg) env) body
+            | IfE(cond, t1, t2) ->
+                let type_cond = infer_type lv env cond in
+                unify env type_cond bool_type;
+                let type_t1 = infer_type lv env t1 in
+                let type_t2 = infer_type lv env t2 in
+                unify env type_t1 type_t2;
+                type_t1
             | CodE t ->
                 if lv > 0 then error "brackets are allowed only at level 0"
                 else
