@@ -1,5 +1,5 @@
 open Identifier
-open Syntax
+open Source.Syntax
 open Error
 
 module rec Env :

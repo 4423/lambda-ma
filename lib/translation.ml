@@ -1,14 +1,14 @@
 open Error
 open Identifier
 
-module S = Syntax
+module S = Source.Syntax
 module T = Target.Syntax
 module SC = S.Core
 module TC = T.Core
 module SM = S.Mod
 module TM = T.Mod
 
-let rec f : Syntax.Mod.mod_term -> Target.Syntax.Mod.mod_term =
+let rec f : S.Mod.mod_term -> T.Mod.mod_term =
     fun modl -> mod_term 0 [] modl
 
 and path = function
@@ -141,7 +141,7 @@ and core_term lv d = function
 
 and core_type lv = function
     | SC.Var tvar           -> TC.Var (type_variable lv tvar)
-    | SC.Typeconstr (p, [t]) when p = Modules.CoreTyping.path_csp -> core_type lv t
+    | SC.Typeconstr (p, [t]) when p = Typing.CoreTyping.path_csp -> core_type lv t
     | SC.Typeconstr (p, ts) -> TC.Typeconstr (path p, List.map (fun t -> core_type lv t) ts)
 
 and type_variable lv tvar =

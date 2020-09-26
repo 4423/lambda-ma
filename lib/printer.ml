@@ -1,7 +1,7 @@
 open Identifier
-open Modules
+open Typing
 open Format
-open Syntax
+open Source.Syntax
 open Core
 open Mod
 
