@@ -124,6 +124,8 @@ module Scoping =
                 EscE(scope_term (lv-1) sc t)
             | RunE t ->
                 RunE(scope_term lv sc t)
+            | DollarE(path, field) ->
+                DollarE(Scope.module_path path lv sc, field)
         let rec scope_simple_type lv sc = function
             | Var v -> Var v
             | Typeconstr(path, args) when path = path_csp ->
@@ -132,6 +134,13 @@ module Scoping =
             | Typeconstr(path, args) when path = path_code ->
                 Typeconstr(Scope.type_path path (lv+1) sc,
                             List.map (scope_simple_type (lv+1) sc) args)
+            | Typeconstr(path, [t1;t2]) when path = path_dollar ->
+                let (root, var) = match (t1, t2) with
+                | (Typeconstr(root, []), Typeconstr(var, [])) -> root, var
+                in
+                let t1' = Typeconstr(Scope.module_path root lv sc, []) in
+                let t2' = Typeconstr(Scope.type_path var (lv+1) sc, []) in
+                Typeconstr(path, [t1';t2'])
             | Typeconstr(path, args) ->
                 Typeconstr(Scope.type_path path lv sc,
                             List.map (scope_simple_type lv sc) args)
@@ -181,6 +190,7 @@ module ModScoping =
             | CodM(m) -> CodM(scope_module (lv+1) sc m)
             | EscM(m) -> EscM(scope_module (lv-1) sc m)
             | RunM(m, mty) -> RunM(scope_module lv sc m, scope_modtype lv sc mty)
+            | DollarM(path, field) -> DollarM(Scope.module_path path lv sc, field)
         and scope_structure lv sc = function
             | [] -> []
             | LetM(id, v) :: rem ->

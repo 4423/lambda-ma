@@ -19,6 +19,9 @@ module rec Env :
         val find_value: path -> t -> Mod.Core.val_type
         val find_type: path -> t -> Mod.type_decl
         val find_module: path -> t -> Mod.mod_type
+        val find_value_dollar: path -> string -> t -> Mod.Core.val_type
+        val find_type_dollar: path -> string -> t -> Mod.type_decl
+        val find_module_dollar: path -> string -> t -> Mod.mod_type
     end
     =
     struct
@@ -48,6 +51,7 @@ module rec Env :
                 | _ -> error "structure expected in dot access"
                 end
             | AppP(p1, p2) ->
+                begin
                 match (find_module p1 env, find_module p2 env) with
                 | (Mod.FunS(id, mty1, mty2), mty3) -> 
                     begin
@@ -58,6 +62,9 @@ module rec Env :
                         error "type of path application is incorrect"
                     end
                 | _ -> error "functor expected in path application"
+                end
+            | DollarP(root, field) ->
+                find_dollar root field env
         and find_field p field subst = function
             | [] -> error "no such field in structure"
             | Mod.ValS(id, vty) :: rem ->
@@ -83,6 +90,37 @@ module rec Env :
         and find_module path env =
             match find path env with
             Module mty -> mty | _ -> error "module field expected"   
+        
+        and find_dollar root field env =
+            match find_module root env with
+            | Mod.CodS(Mod.Signature sg) ->
+                find_field_dollar root field Subst.identity sg
+            | _ -> error "signature mcod expected in dollar access"
+        and find_field_dollar p field subst = function
+            | [] -> error "no such field in structure"
+            | Mod.ValS(id, vty) :: rem ->
+                if Ident.name id = field
+                then Value(Mod.Core.subst_valtype vty subst)
+                else find_field_dollar p field subst rem
+            | Mod.TypeS(id, decl) :: rem ->
+                if Ident.name id = field
+                then Type(Mod.subst_typedecl decl subst)
+                else find_field_dollar p field
+                        (Subst.add id (DollarP(p, Ident.name id)) subst) rem
+            | Mod.ModS(id, mty) :: rem ->
+                if Ident.name id = field
+                then Module(Mod.subst_modtype mty subst)
+                else find_field_dollar p field
+                        (Subst.add id (DollarP(p, Ident.name id)) subst) rem
+        and find_value_dollar root field env =
+            match find_dollar root field env with
+            Value vty -> vty | _ -> error "value field expected"
+        and find_type_dollar root field env =
+            match find_dollar root field env with
+            Type decl -> decl | _ -> error "type field expected"
+        and find_module_dollar root field env =
+            match find_dollar root field env with
+            Module mty -> mty | _ -> error "module field expected"
     end
 
 and CoreTyping :
@@ -278,11 +316,24 @@ and CoreTyping :
                 | Var {repres = Some(Typeconstr(path, [t])) } when path = path_code -> t
                 | _ -> error "run for non-code value"
                 end
+            | DollarE(root, field) ->
+                if lv > 0 then error "dollar access is allowed only at level 0"
+                else code_type @@ instance (Env.find_value_dollar root field env)
 
         let rec check_simple_type env params ty =
         match typerepr ty with
             | Var v ->
                 if not (List.memq v params) then error "free type variable"
+            | Typeconstr(path, tl) when path = path_dollar ->
+                let arity_dollar = (Env.find_type path env).Mod.kind.arity in
+                if arity_dollar <> 2 then error "arity error";
+                let t1 = List.nth tl 0 in
+                let t2 = List.nth tl 1 in
+                let (root, field) = match (t1, t2) with
+                | (Typeconstr(root, []), Typeconstr(IdentP id, [])) -> root, Ident.name id
+                in
+                let arity_field = (Env.find_type_dollar root field env).Mod.kind.arity in
+                if arity_field <> 0 then error "arity error"
             | Typeconstr(path, tl) ->
                 let arity = (Env.find_type path env).Mod.kind.arity in
                 if List.length tl <> arity then error "arity error";
@@ -354,6 +405,7 @@ and CoreTyping :
             | IdentP id' -> Ident.equal id id'
             | DotP(p, s) -> is_rooted_at id p
             | AppP(p1, p2) -> is_rooted_at id p1 && is_rooted_at id p2
+            | DollarP _ -> error "unexpected dollar access"
 
         let rec nondep_type env id ty =
         match typerepr ty with
@@ -599,6 +651,11 @@ and ModTyping :
                     mty
                 | _ -> error "a code of a module is expected for an argument of Runmod"
                 end
+            | DollarM(root, field) ->
+                if lv > 0 then error "dollar access is allowed only at level 0"
+                else
+                    let mty = Env.find_module_dollar root field env in
+                    CodS(strengthen_modtype root mty)
         and type_structure lv env seen = function
             | [] -> []
             | stritem :: rem ->
@@ -671,6 +728,7 @@ let _ =
     enter_type ident_string {Mod.kind = {arity = 0}; Mod.manifest = None};
     enter_type ident_code {Mod.kind = {arity = 1}; Mod.manifest = None};
     enter_type ident_csp {Mod.kind = {arity = 1}; Mod.manifest = None};
+    enter_type ident_dollar {Mod.kind = {arity = 2}; Mod.manifest = None};
     List.iter
         (fun id ->
             enter_val id

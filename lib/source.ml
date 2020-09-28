@@ -6,6 +6,7 @@ module Syntax = struct
         | IdentP of Ident.t             (* identifier *)
         | DotP of path * string         (* access to a module component *)
         | AppP of path * path
+        | DollarP of path * string
 
     let rec path_equal p1 p2 =
         match (p1, p2) with
@@ -14,6 +15,8 @@ module Syntax = struct
             path_equal r1 r2 && field1 = field2
         | (AppP(fun1, arg1), AppP(fun2, arg2)) ->
             path_equal fun1 fun2 && path_equal arg1 arg2
+        | (DollarP(r1, field1), DollarP(r2, field2)) ->
+            path_equal r1 r2 && field1 = field2
         | (_, _) -> false
 
     (* Section 2.3: Substitutions *)
@@ -37,6 +40,7 @@ module Syntax = struct
                 | IdentP id -> (try Ident.find id sub with Not_found -> p)
                 | DotP(root, field) -> DotP(path root sub, field)
                 | AppP(p1, p2) -> AppP(path p1 sub, path p2 sub)
+                | DollarP(root, field) -> DollarP(path root sub, field)
         end
 
 
@@ -57,6 +61,7 @@ module Syntax = struct
                 | CodE of term                          (* <expr> *)
                 | EscE of term                          (* ~expr *)
                 | RunE of term                          (* run expr *)
+                | DollarE of path * string              (* path$field *)
             type simple_type =
                 | Var of type_variable                   (* 'a, 'b *)
                 | Typeconstr of path * simple_type list  (* constructed type *)
@@ -111,10 +116,14 @@ module Syntax = struct
             let path_csp = IdentP ident_csp
             let csp_type t = Typeconstr(path_csp, [t])
 
+            let ident_dollar = Ident.create "$"
+            let path_dollar = IdentP ident_dollar
+            let dollar_type t1 t2 = Typeconstr(path_dollar, [t1;t2])
+
             let type_ids = [
                 ident_arrow; ident_star; 
                 ident_int; ident_bool; ident_string; 
-                ident_code; ident_csp
+                ident_code; ident_csp; ident_dollar
             ]
 
             type val_type =
@@ -164,6 +173,7 @@ module Syntax = struct
                 | CodM of mod_term                          (* <<mod>> *)
                 | EscM of mod_term                          (* ~~mod *)
                 | RunM of mod_term * mod_type               (* Runmod(mod : mty) *)
+                | DollarM of path * string                  (* path$field *)
             and structure = definition list
             and definition =
                 | LetM of Ident.t * Core.term               (* let x = expr *)

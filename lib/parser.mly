@@ -142,6 +142,7 @@ valexpr:
   | LCOD valexpr RCOD                 { Core.CodE($2) }
   | ESC valexpr                       { Core.EscE($2) }
   | RUN valexpr                       { Core.RunE($2) }
+  | path DOLLAR VAR                   { Core.DollarE($1, $3) }
 ;
 valexpr1:
     valexpr0 { $1 }
@@ -171,6 +172,9 @@ simpletype:
   | LPAREN simpletypelist RPAREN path_var { Core.Typeconstr($4, List.rev $2) }
   | simpletype CODE             { Core.Typeconstr(Core.path_code, [$1]) }
   | CSP simpletype              { Core.Typeconstr(Core.path_csp, [$2]) }
+  | path DOLLAR VAR             { Core.dollar_type 
+                                    (Core.Typeconstr($1, [])) 
+                                    (Core.Typeconstr(IdentP(Ident.create $3), [])) }
 ;
 simpletypelist:
     simpletype { [$1] }
@@ -227,6 +231,7 @@ modulexpr:
   | LMCOD modulexpr RMCOD             { Mod.CodM($2) }
   | MESC modulexpr                    { Mod.EscM($2) }
   | MRUN LPAREN modulexpr COLON moduletype RPAREN { Mod.RunM($3, $5) }
+  | path DOLLAR CON                   { Mod.DollarM($1, $3) }
 ;
 structure:
     /*nothing*/                       { [] }

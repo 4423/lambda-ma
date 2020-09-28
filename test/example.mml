@@ -91,3 +91,31 @@ type s2 = string
 let b1 = true
 let b2 = false
 type b3 = bool
+
+module D1 = struct
+  module A = struct
+    module B = .<< struct
+      module C = struct
+        module D = (struct
+          type t = int
+          let x = 0
+        end : sig
+          type t = int
+          val x: t
+        end)
+      end
+      type u = int
+      let y = 0
+    end >>.
+    type v = B$u
+    let z = B$y
+  end
+end
+let d1 = D1.A.B$y
+type d2 = D1.A.B$u
+module D2 = D1.A.B$C
+module D3 = D2$D
+let d3 = D3$x
+type d4 = D3$t
+let d5 = Runcode.run (D3$x)
+let d6 = d5 + 1

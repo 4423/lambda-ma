@@ -15,6 +15,7 @@ and path = function
     | S.IdentP id     -> T.IdentP id
     | S.DotP (p, s)   -> T.DotP (path p, s)
     | S.AppP (p1, p2) -> T.AppP (path p1, path p2)
+    | S.DollarP _     -> error "unexpected dollar access"
 
 and mod_term lv d = function
     | SM.Longident p            -> TM.Longident (path p)
@@ -35,6 +36,9 @@ and mod_term lv d = function
     | SM.RunM (modl, mty) -> 
         if lv = 0 then runmod (mod_term 0 d modl) mty
         else error "Runmod is allowed only at level 0"
+    | SM.DollarM (root, field) -> 
+        if lv = 0 then TM.Longident (T.DotP ((path root), field))
+        else error "dollar access is allowed only at level 0"
 
 and structure lv d str =
     definition lv d str
@@ -140,10 +144,19 @@ and core_term lv d = function
     | SC.RunE term ->
         if lv = 0 then TC.RunE (core_term lv d term)
         else error "run is allowed only at level 0"
+    | SC.DollarE (root, field) ->
+        if lv = 0 then TC.Longident (T.DotP ((path root), field))
+        else error "dollar access is allowed only at level 0"
 
 and core_type lv = function
     | SC.Var tvar           -> TC.Var (type_variable lv tvar)
     | SC.Typeconstr (p, [t]) when p = SC.path_csp -> core_type lv t
+    | SC.Typeconstr (p, [t1;t2]) when p = SC.path_dollar ->
+        let (root, field) = match (t1, t2) with
+        | (SC.Typeconstr (root, []), SC.Typeconstr (IdentP id, [])) -> root, Ident.name id
+        | _ -> error "could not deconstruct type of dollar access"
+        in
+        TC.Typeconstr (T.DotP (path root, field), [])
     | SC.Typeconstr (p, ts) -> TC.Typeconstr (path p, List.map (fun t -> core_type lv t) ts)
 
 and type_variable lv tvar =

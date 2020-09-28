@@ -16,6 +16,8 @@ let rec print_path = function
         print_path root; print_string "."; print_string field
     | AppP(p1, p2) ->
         print_path p1; print_string "("; print_path p2; print_string ")"
+    | DollarP(root, field) ->
+        print_path root; print_string "$"; print_string field
 
 let rec print_simple_type ty =
     match CoreTyping.typerepr ty with
@@ -39,6 +41,9 @@ let rec print_simple_type ty =
         print_simple_type t; print_string " code"
     | Typeconstr(path, [t]) when path = path_csp ->
         print_string ".%"; print_simple_type t
+    | Typeconstr(path, [t1;t2]) when path = path_dollar ->
+        print_simple_type t1; print_string "$";
+        print_simple_type t2
     | Typeconstr(path, []) ->
         print_path path
     | Typeconstr(path, [t]) ->
