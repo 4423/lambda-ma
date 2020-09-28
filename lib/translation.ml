@@ -91,7 +91,7 @@ and mod_type lv = function
         if lv = 0 then TM.FunS (id, mod_type lv arg, mod_type lv res)
         else error "functor types are allowed only at level 0"
     | SM.CodS mty -> 
-        if lv = 0 then mod_type lv mty
+        if lv = 0 then mod_type (lv+1) mty
         else error "mcod is allowed only at level 0"
 
 and signature lv sg =
