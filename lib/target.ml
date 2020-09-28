@@ -130,7 +130,7 @@ module Print = struct
         | ValS (id, vty)   -> i @@ sprintf "val %s: %s" (Ident.name id) (val_type vty)
         | TypeS (id, decl) -> begin match type_decl decl with
                               | None    -> i @@ sprintf "type %s" (Ident.name id)
-                              | Some ty -> i @@ sprintf "type %s: %s" (Ident.name id) ty
+                              | Some ty -> i @@ sprintf "type %s = %s" (Ident.name id) ty
                               end
         | ModS (id, mty)   -> i @@ sprintf "module %s: %s"(Ident.name id) (mod_type mty)
     
