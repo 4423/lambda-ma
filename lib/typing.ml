@@ -50,17 +50,12 @@ module rec Env :
                 | Mod.Signature sg -> find_field root field Subst.identity sg
                 | _ -> error "structure expected in dot access"
                 end
-            | AppP(p1, p2) ->
+            | AppP(funct, arg) ->
                 begin
-                match (find_module p1 env, find_module p2 env) with
-                | (Mod.FunS(id, mty1, mty2), mty3) -> 
-                    begin
-                    try
-                        ModTyping.modtype_match env mty3 mty1;
-                        Module(Mod.subst_modtype mty2 (Subst.add id p2 Subst.identity))
-                    with _ ->
-                        error "type of path application is incorrect"
-                    end
+                match (find_module funct env, find_module arg env) with
+                | (Mod.FunS(param, mty_param, mty_res), mty_arg) -> 
+                    ModTyping.modtype_match env mty_arg mty_param;
+                    Module(Mod.subst_modtype mty_res (Subst.add param arg Subst.identity))
                 | _ -> error "functor expected in path application"
                 end
             | DollarP(root, field) ->
