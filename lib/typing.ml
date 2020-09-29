@@ -56,8 +56,8 @@ module rec Env :
                 | (Mod.FunS(id, mty1, mty2), mty3) -> 
                     begin
                     try
-                        ModTyping.modtype_match env mty1 mty3;
-                        Module mty2
+                        ModTyping.modtype_match env mty3 mty1;
+                        Module(Mod.subst_modtype mty2 (Subst.add id p2 Subst.identity))
                     with _ ->
                         error "type of path application is incorrect"
                     end
