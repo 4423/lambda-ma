@@ -586,9 +586,7 @@ and ModTyping :
                 check_modtype env mty;
                 FunS(param, mty,
                     type_module lv (Env.add_module param mty env) body)
-            | AppM(funct, arg) ->
-                (* The relaxed typing rule for functor applications,
-                    as described in section 5.5 *)
+            | AppM(funct, ((Longident arg_path) as arg)) ->
                 if lv > 0 then error "functor applications are allowed only at level 0"
                 else
                 begin
@@ -596,20 +594,27 @@ and ModTyping :
                 | FunS(param, mty_param, mty_res) ->
                     let mty_arg = type_module lv env arg in
                     modtype_match env mty_arg mty_param;
-                    begin
-                    match arg with
-                    | Longident path ->
-                        subst_modtype mty_res
-                                    (Subst.add param path Subst.identity)
-                    | _ ->
-                        try
-                            let mty_res' = nondep_modtype (Env.add_module param mty_arg env)
-                                            param mty_res in
-                            (* 結果型の型コンポーネントのうち自由変数が含まれているマニフェスト型を抽象型にする *)
-                            eliminate_module env mty_res'
-                        with Not_found ->
-                            error "cannot eliminate dependency in application"
-                    end
+                    subst_modtype mty_res (Subst.add param arg_path Subst.identity)
+                | _ -> error "application of a non-functor"
+                end
+            | AppM(funct, arg) ->
+                if lv > 0 then error "functor applications are allowed only at level 0"
+                else
+                (* if arg is not path and funct is path, do not strengthen funct *)
+                (* otherwise strengthen funct normaly *)
+                let funct_mty = match funct with 
+                | Longident funct_path -> Env.find_module funct_path env
+                | _ -> type_module lv env funct
+                in
+                begin
+                match funct_mty with
+                | FunS(param, mty_param, mty_res) ->
+                    let mty_arg = type_module lv env arg in
+                    modtype_match env mty_arg mty_param;
+                    try
+                        nondep_modtype (Env.add_module param mty_arg env) param mty_res
+                    with Not_found ->
+                        error "cannot eliminate dependency in application"
                 | _ -> error "application of a non-functor"
                 end
             | Constraint(modl, mty) ->
@@ -677,33 +682,6 @@ and ModTyping :
                 then error "kind mismatch in type definition";
                 (TypeS(id, {kind = kind; manifest = Some typ}),
                 Ident.name id :: seen)
-
-        and eliminate_module env = function
-            | Signature sg -> Signature(eliminate_signature env sg)
-            | FunS(param, arg, res) ->
-                FunS(param, 
-                    eliminate_module env arg, 
-                    eliminate_module (Env.add_module param arg env) res)
-            | CodS mty -> CodS(eliminate_module env mty)
-        and eliminate_signature env = function
-            | [] -> []
-            | ValS(id, vty) as v :: rem ->
-                v :: eliminate_signature env rem
-            | TypeS(id, decl) :: rem ->
-                let decl' = 
-                    begin match decl.manifest with
-                    | None -> decl
-                    | Some typ ->
-                        try
-                            (* typ に自由変数が含まれていないかを kind_deftype でチェック *)
-                            CT.kind_deftype env typ;
-                            decl
-                        with Not_found ->
-                            { kind = decl.kind; manifest = None }
-                    end in
-                TypeS(id, decl') :: eliminate_signature (Env.add_type id decl env) rem
-            | ModS(id, mty) as m :: rem ->
-                m :: eliminate_signature (Env.add_module id mty env) rem
     end
 
 let init_env = ref Env.empty
