@@ -135,6 +135,7 @@ and core_term lv d = function
     | SC.LetE (id, arg, body)    -> TC.LetE (id, core_term lv d arg, core_term lv d body)
     | SC.LetRecE (id, arg, body) -> TC.LetRecE (id, core_term lv d arg, core_term lv d body)
     | SC.IfE (t1, t2, t3)        -> TC.IfE (core_term lv d t1, core_term lv d t2, core_term lv d t3)
+    | SC.MatchE (t, cs)          -> TC.MatchE (core_term lv d t, List.map (pattern_clauses lv d) cs)
     | SC.CodE term ->
         if lv = 0 then TC.CodE (core_term (lv+1) d term)
         else error "brackets are allowed only at level 0"
@@ -147,6 +148,13 @@ and core_term lv d = function
     | SC.DollarE (root, field) ->
         if lv = 0 then TC.Longident (T.DotP ((path root), field))
         else error "dollar access is allowed only at level 0"
+and pattern_clauses lv d (pat, term) =
+    pattern pat, core_term lv d term
+and pattern = function
+    | SC.VarPat id -> TC.VarPat id
+    | SC.ConsPat (hd, tl) -> TC.ConsPat (pattern hd, tl)
+    | SC.PairPat (p1, p2) -> TC.PairPat (pattern p1, pattern p2)
+    | SC.WildPat -> TC.WildPat
 
 and core_type lv = function
     | SC.Var tvar           -> TC.Var (type_variable lv tvar)

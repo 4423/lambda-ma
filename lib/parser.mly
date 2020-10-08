@@ -139,6 +139,7 @@ valexpr:
   | LET VAR valbind IN valexpr      { Core.LetE(Ident.create $2, $3, $5) }
   | LET REC VAR valbind IN valexpr     { Core.LetRecE(Ident.create $3, $4, $6) }
   | IF valexpr THEN valexpr ELSE valexpr { Core.IfE($2, $4, $6) }
+  | MATCH valexpr WITH clauselist     { Core.MatchE ($2, $4) }
   | LCOD valexpr RCOD                 { Core.CodE($2) }
   | ESC valexpr                       { Core.EscE($2) }
   | RUN valexpr                       { Core.RunE($2) }
@@ -159,6 +160,25 @@ valexpr0:
 valbind:
     EQUAL valexpr     { $2 }
   | VAR valbind     { Core.FunE(Ident.create $1, $2) }
+;
+
+clauselist:
+  | clauselist BAR clauselist { $1 @ $3 }
+  | clause                    { $1 :: [] }
+;
+clause:
+  | pattern ARROW valexpr  { $1, $3 }
+;
+pattern:
+  | pattern COLCOL VAR      { ConsPat ($1, Ident.create $3) }
+  | pattern COMMA pattern   { PairPat ($1, $3) }
+  | simplepattern           { $1 }
+;
+simplepattern:
+  | LPAREN pattern RPAREN   { $2 }
+  | VAR                     { match $1 with
+                              | "_" -> WildPat
+                              | x0  -> VarPat (Ident.create x0) }
 ;
 
 /* Type expressions for the core language */

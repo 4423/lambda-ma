@@ -118,6 +118,9 @@ module Scoping =
                     scope_term lv (Scope.enter_value id lv sc) t2)
             | IfE(t1, t2, t3) ->
                 IfE(scope_term lv sc t1, scope_term lv sc t2, scope_term lv sc t3)
+            | MatchE(t, clauses) ->
+                MatchE(scope_term lv sc t, 
+                    List.map (scope_clause lv sc) clauses)
             | CodE t ->
                 CodE(scope_term (lv+1) sc t)
             | EscE t ->
@@ -126,6 +129,19 @@ module Scoping =
                 RunE(scope_term lv sc t)
             | DollarE(path, field) ->
                 DollarE(Scope.module_path path lv sc, field)
+        and scope_clause lv sc (pat, t) =
+            (pat, scope_term lv (enter_pattern lv sc pat) t)
+        and enter_pattern lv sc = function
+            | VarPat id -> Scope.enter_value id lv sc
+            | ConsPat(hd_ptn, tl_id) -> 
+                let sc = enter_pattern lv sc hd_ptn in
+                let sc = Scope.enter_value tl_id lv sc in
+                sc
+            | PairPat(p1, p2) ->
+                let sc = enter_pattern lv sc p1 in
+                let sc = enter_pattern lv sc p2 in
+                sc
+            | WildPat -> sc
         let rec scope_simple_type lv sc = function
             | Var v -> Var v
             | Typeconstr(path, args) when path = path_csp ->

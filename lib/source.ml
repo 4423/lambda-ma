@@ -58,10 +58,16 @@ module Syntax = struct
                 | LetE of Ident.t * term * term           (* let id = expr in expr *)
                 | LetRecE of Ident.t * term * term      (* let rec id = expr in expr *)
                 | IfE of term * term * term             (* if expr then expr else expr *)
+                | MatchE of term * (pattern * term) list    (* match expr with pattern -> expr | ... *)
                 | CodE of term                          (* <expr> *)
                 | EscE of term                          (* ~expr *)
                 | RunE of term                          (* run expr *)
                 | DollarE of path * string              (* path$field *)
+            and pattern =
+                | VarPat of Ident.t                     (* id *)
+                | ConsPat of pattern * Ident.t          (* pattern :: pattern *)
+                | PairPat of pattern * pattern          (* pattern, pattern *)
+                | WildPat                               (* _ *)
             type simple_type =
                 | Var of type_variable                   (* 'a, 'b *)
                 | Typeconstr of path * simple_type list  (* constructed type *)
@@ -120,8 +126,12 @@ module Syntax = struct
             let path_dollar = IdentP ident_dollar
             let dollar_type t1 t2 = Typeconstr(path_dollar, [t1;t2])
 
+            let ident_list = Ident.create "list"
+            let path_list = IdentP ident_list
+            let list_type t = Typeconstr(path_list, [t])
+
             let type_ids = [
-                ident_arrow; ident_star; 
+                ident_arrow; ident_star; ident_list;
                 ident_int; ident_bool; ident_string; 
                 ident_code; ident_csp; ident_dollar
             ]

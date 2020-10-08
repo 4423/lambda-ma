@@ -119,3 +119,6 @@ let d3 = D3$x
 type d4 = D3$t
 let d5 = Runcode.run (D3$x)
 let d6 = d5 + 1
+
+let m1 = fun xs -> match xs with a::b -> let z = a + 1 in a
+let m2 = fun xs -> match xs with (a1,(a2,a3))::b -> b | c -> c | _ -> xs

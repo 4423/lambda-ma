@@ -286,6 +286,33 @@ and CoreTyping :
                 let type_t2 = infer_type lv env t2 in
                 unify env type_t1 type_t2;
                 type_t1
+            | MatchE(t, cs) ->
+                (* tentative implementation *)
+                let type_pat = infer_type lv env t in
+                let rec infer_type_pattern env = function
+                    | VarPat var -> 
+                        let type_var = unknown() in
+                        let env' = Env.add_value var (trivial_scheme type_var) env in
+                        type_var, env'
+                    | ConsPat(hd_ptn, tl_id) -> 
+                        let type_hd, env' = infer_type_pattern env hd_ptn in
+                        let type_tl = list_type type_hd in
+                        let env' = Env.add_value tl_id (trivial_scheme type_tl) env' in
+                        type_tl, env'
+                    | PairPat(p1, p2) ->
+                        let type_p1, env' = infer_type_pattern env p1 in
+                        let type_p2, env' = infer_type_pattern env' p2 in
+                        let ty = star_type type_p1 type_p2 in
+                        ty, env'
+                    | WildPat ->
+                        unknown(), env 
+                in
+                List.hd @@ List.map
+                    (fun (pat, term) -> 
+                        let type_pat', env' = infer_type_pattern env pat in
+                        unify env' type_pat type_pat';
+                        infer_type lv env' term)
+                    cs
             | CodE t ->
                 if lv > 0 then error "brackets are allowed only at level 0"
                 else
@@ -699,6 +726,7 @@ let _ =
     enter_type ident_int {Mod.kind = {arity = 0}; Mod.manifest = None};
     enter_type ident_bool {Mod.kind = {arity = 0}; Mod.manifest = None};
     enter_type ident_string {Mod.kind = {arity = 0}; Mod.manifest = None};
+    enter_type ident_list {Mod.kind = {arity = 1}; Mod.manifest = None};
     enter_type ident_code {Mod.kind = {arity = 1}; Mod.manifest = None};
     enter_type ident_csp {Mod.kind = {arity = 1}; Mod.manifest = None};
     enter_type ident_dollar {Mod.kind = {arity = 2}; Mod.manifest = None};

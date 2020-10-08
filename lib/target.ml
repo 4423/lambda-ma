@@ -19,10 +19,16 @@ module Syntax = struct
                 | LetE of Ident.t * term * term         (* let id = expr in expr *)
                 | LetRecE of Ident.t * term * term      (* let rec id = expr in expr *)
                 | IfE of term * term * term             (* if expr then expr else expr *)
+                | MatchE of term * (pattern * term) list    (* match expr with pattern -> expr | ... *)
                 | CodE of term                          (* <expr> *)
                 | EscE of term                          (* ~expr *)
                 | RunE of term                          (* run expr *)
                 | GenletE of term                       (* genlet expr *)
+            and pattern =
+                | VarPat of Ident.t                     (* id *)
+                | ConsPat of pattern * Ident.t          (* pattern :: pattern *)
+                | PairPat of pattern * pattern          (* pattern, pattern *)
+                | WildPat 
             type simple_type =
                 | Var of type_variable                  (* 'a, 'b *)
                 | Typeconstr of path * simple_type list (* constructed type *)
@@ -149,11 +155,21 @@ module Print = struct
         | LetE (id, arg, body)    -> sprintf "let %s = %s in %s" (Ident.name id) (core_term arg) (core_term body)
         | LetRecE (id, arg, body) -> sprintf "let rec %s = %s in %s" (Ident.name id) (core_term arg) (core_term body)
         | IfE (t1, t2, t3)        -> sprintf "if %s then %s else %s" (core_term t1) (core_term t2) (core_term t3)
+        | MatchE (t, cs)          -> sprintf "match %s with %s" (core_term t) (pattern_clauses cs)
         | CodE term               -> sprintf ".<%s>." (core_term term)
         | EscE term               -> sprintf ".~(%s)" (core_term term)
         | RunE term               -> sprintf "Runcode.run (%s)" (core_term term)
         | GenletE term            -> sprintf "genlet %s" (core_term term)
-        
+    and pattern_clauses cs =
+        String.concat " | " @@ List.map pattern_clause cs
+    and pattern_clause (pat, term) =
+        sprintf "%s -> %s" (pattern pat) (core_term term)
+    and pattern = function
+        | VarPat id -> Ident.name id
+        | ConsPat (hd_ptn, tl_id) -> sprintf "%s::%s" (pattern hd_ptn) (Ident.name tl_id)
+        | PairPat (p1, p2) -> sprintf "(%s, %s)" (pattern p1) (pattern p2)
+        | WildPat -> "_"
+
     and core_type = function
         | Var tvar           -> type_variable tvar
         | Typeconstr (p, []) -> path p
@@ -163,6 +179,8 @@ module Print = struct
             sprintf "%s * %s" (core_type t1) (core_type t2)
         | Typeconstr (IdentP id, [t]) when Ident.name id = "code" ->
             sprintf "%s code" (core_type t)
+        | Typeconstr (IdentP id, [t]) when Ident.name id = "list" ->
+            sprintf "%s list" (core_type t)
         | Typeconstr (p, [t]) ->
             sprintf "%s %s" (core_type t) (path p)
         | Typeconstr (p, th::tl) ->
