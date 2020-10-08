@@ -740,6 +740,12 @@ let _ =
         (fun id ->
             enter_val id
             { quantif = [];
+              body = arrow_type bool_type (arrow_type bool_type bool_type)})
+        [ident_conj; ident_disj];
+    List.iter
+        (fun id ->
+            enter_val id
+            { quantif = [];
               body = arrow_type int_type (arrow_type int_type int_type)})
         [ident_plus; ident_minus; ident_star; ident_slash]; 
     let alpha = CoreTyping.newvar() and beta = CoreTyping.newvar() in

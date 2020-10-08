@@ -122,3 +122,18 @@ let d6 = d5 + 1
 
 let m1 = fun xs -> match xs with a::b -> let z = a + 1 in a
 let m2 = fun xs -> match xs with (a1,(a2,a3))::b -> b | c -> c | _ -> xs
+
+module MakeSet = 
+  functor (Eq : sig type t val eq: t->t->bool end) ->
+    (struct 
+      type elem = Eq.t
+      type set = elem list
+      let rec mem = fun elem -> fun set ->
+        match set with
+          hd :: tl -> Eq.eq elem hd || mem elem tl
+        | _        -> false
+    end : sig
+      type elem
+      type set
+      val mem: elem -> set -> bool
+    end)

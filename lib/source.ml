@@ -81,6 +81,8 @@ module Syntax = struct
             let ident_lteq = Ident.create "<="
             let ident_gt = Ident.create ">"
             let ident_gteq = Ident.create ">="
+            let ident_conj = Ident.create "&&"
+            let ident_disj = Ident.create "||"
             let ident_plus = Ident.create "+"
             let ident_minus = Ident.create "-"
             let ident_star = Ident.create "*"
@@ -91,6 +93,7 @@ module Syntax = struct
 
             let val_ids = [
                 ident_eq; ident_neq; ident_lt; ident_lteq; ident_gt; ident_gteq; 
+                ident_conj; ident_disj;
                 ident_plus; ident_minus; ident_star; ident_slash;
                 ident_comma; ident_fst; ident_snd
             ]
