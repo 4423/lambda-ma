@@ -151,12 +151,9 @@ module Scoping =
                 Typeconstr(Scope.type_path path (lv+1) sc,
                             List.map (scope_simple_type (lv+1) sc) args)
             | Typeconstr(path, [t1;t2]) when path = path_dollar ->
-                let (root, var) = match (t1, t2) with
-                | (Typeconstr(root, []), Typeconstr(var, [])) -> root, var
-                in
+                let root = match t1 with Typeconstr(root, []) -> root in
                 let t1' = Typeconstr(Scope.module_path root lv sc, []) in
-                let t2' = Typeconstr(Scope.type_path var (lv+1) sc, []) in
-                Typeconstr(path, [t1';t2'])
+                Typeconstr(path, [t1';t2])
             | Typeconstr(path, args) ->
                 Typeconstr(Scope.type_path path lv sc,
                             List.map (scope_simple_type lv sc) args)
