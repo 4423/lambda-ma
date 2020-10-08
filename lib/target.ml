@@ -151,7 +151,9 @@ module Print = struct
         | BoolE b                 -> if b then "true" else "false"
         | Longident p             -> path p
         | FunE (id, term)         -> sprintf "fun %s -> %s" (Ident.name id) (core_term term)
-        | AppE (funct, arg)       -> sprintf "((%s) %s)" (core_term funct) (core_term arg)
+        | AppE (AppE (Longident (IdentP id), arg1), arg2) when is_binop id -> 
+            sprintf "(%s %s %s)" (core_term arg1) (Ident.name id) (core_term arg2)
+        | AppE (funct, arg)       -> sprintf "(%s %s)" (core_term funct) (core_term arg)
         | LetE (id, arg, body)    -> sprintf "let %s = %s in %s" (Ident.name id) (core_term arg) (core_term body)
         | LetRecE (id, arg, body) -> sprintf "let rec %s = %s in %s" (Ident.name id) (core_term arg) (core_term body)
         | IfE (t1, t2, t3)        -> sprintf "if %s then %s else %s" (core_term t1) (core_term t2) (core_term t3)
@@ -160,6 +162,8 @@ module Print = struct
         | EscE term               -> sprintf ".~(%s)" (core_term term)
         | RunE term               -> sprintf "Runcode.run (%s)" (core_term term)
         | GenletE term            -> sprintf "genlet %s" (core_term term)
+    and is_binop id =
+        List.mem (Ident.name id) [","; "+"; "-"; "*"; "/"; "=="; "<>"; "<"; "<="; ">"; ">="; "&&"; "||"]
     and pattern_clauses cs =
         String.concat " | " @@ List.map pattern_clause cs
     and pattern_clause (pat, term) =
