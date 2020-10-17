@@ -182,9 +182,9 @@ module Print = struct
         | Typeconstr (IdentP id, [t1;t2]) when Ident.name id = "*" ->
             sprintf "%s * %s" (core_type t1) (core_type t2)
         | Typeconstr (IdentP id, [t]) when Ident.name id = "code" ->
-            sprintf "%s code" (core_type t)
+            sprintf "(%s) code" (core_type t)
         | Typeconstr (IdentP id, [t]) when Ident.name id = "list" ->
-            sprintf "%s list" (core_type t)
+            sprintf "(%s) list" (core_type t)
         | Typeconstr (p, [t]) ->
             sprintf "%s %s" (core_type t) (path p)
         | Typeconstr (p, th::tl) ->
