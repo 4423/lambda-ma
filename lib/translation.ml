@@ -12,10 +12,10 @@ let rec f : S.Mod.mod_term -> T.Mod.mod_term =
     fun modl -> mod_term 0 [] modl
 
 and path = function
-    | S.IdentP id     -> T.IdentP id
-    | S.DotP (p, s)   -> T.DotP (path p, s)
-    | S.AppP (p1, p2) -> T.AppP (path p1, path p2)
-    | S.DollarP _     -> error "unexpected dollar access"
+    | S.IdentP id      -> T.IdentP id
+    | S.DotP (p, s)    -> T.DotP (path p, s)
+    | S.AppP (p1, p2)  -> T.AppP (path p1, path p2)
+    | S.DollarP (p, s) -> T.DotP (path p, s)
 
 and mod_term lv d = function
     | SM.Longident p            -> TM.Longident (path p)
