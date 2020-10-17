@@ -53,7 +53,7 @@ and definition lv d = function
             let res = TM.LetM (id, TC.GenletE (TC.CodE term')) in
             res :: definition lv (id::d) rem
     | SM.LetRecM(id, term) :: rem ->
-        let term' = core_term lv d term in
+        let term' = TC.LetRecE (id, core_term lv d term, TC.Longident (T.IdentP id)) in
         if lv = 0 then
             let res = TM.LetRecM (id, term') in
             res :: definition lv d rem
