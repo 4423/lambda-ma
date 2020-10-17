@@ -137,3 +137,37 @@ module MakeSet =
       type set
       val mem: elem -> set -> bool
     end)
+
+module MakeSetCode = 
+  functor (Eq : sig type t val eq: t->t->bool end mcod) ->
+    (.<< struct 
+      type elem = .%Eq$t
+      type set = elem list
+      let rec mem elem set =
+        match set with
+          hd :: tl -> ((.~Eq$eq) elem hd || mem elem tl)
+        | _        -> false
+    end >>. : sig
+      type elem
+      type set
+      val mem: elem -> set -> bool
+    end mcod)
+
+module F2 = functor (M: sig end mcod) ->
+  (.<< struct
+    type t = int
+    let zero = 0
+    let f = fun x -> zero
+  end >>. : sig
+    type t
+    val zero: t
+    val f: t -> t
+  end mcod)
+module EmptyCode = .<< struct end >>.
+module EmptyCode2 = .<< struct end >>.
+module ACode = F2 (EmptyCode)
+module BCode = F2 (EmptyCode)
+module CCode = F2 (EmptyCode2)
+let e1 = .< (.~(ACode$f)) (.~(ACode$zero)) >.
+let e2 = .< (.~(ACode$f)) (.~(BCode$zero)) >.
+(* let e3 = .< (.~(ACode$f)) (.~(CCode$zero)) >. *)

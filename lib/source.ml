@@ -159,6 +159,14 @@ module Syntax = struct
                 { params = def.params;
                     defbody = subst_type subst def.defbody }
             let subst_kind kind subst = kind
+
+            let rec subst_type_csp subst = function
+                | Var {repres = None} as ty -> ty
+                | Var {repres = Some ty} -> subst_type_csp subst ty
+                | Typeconstr(p, tl) when List.exists (fun (_, s) -> p = s) subst ->
+                    csp_type (Typeconstr(p, List.map (subst_type_csp subst) tl))
+                | Typeconstr(p, tl) ->
+                    Typeconstr(p, List.map (subst_type_csp subst) tl)
         end
 
     module Mod = 

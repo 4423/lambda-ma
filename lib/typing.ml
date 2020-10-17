@@ -91,11 +91,14 @@ module rec Env :
             | Mod.CodS(Mod.Signature sg) ->
                 find_field_dollar root field Subst.identity sg
             | _ -> error "signature mcod expected in dollar access"
+        and subst_valtype vty subst =
+            let vty' = Mod.Core.subst_valtype vty subst in
+            Core.({ quantif = vty.quantif; body = Core.subst_type_csp subst vty'.body })
         and find_field_dollar p field subst = function
             | [] -> error "no such field in structure"
             | Mod.ValS(id, vty) :: rem ->
                 if Ident.name id = field
-                then Value(Mod.Core.subst_valtype vty subst)
+                then Value(subst_valtype vty subst)
                 else find_field_dollar p field subst rem
             | Mod.TypeS(id, decl) :: rem ->
                 if Ident.name id = field
@@ -250,6 +253,14 @@ and CoreTyping :
             | [] -> vty.body
             | vars -> subst_vars (List.map (fun v -> (v, unknown())) vars) vty.body
 
+        let rec eliminate_csp lv ty =
+            if lv > 0 then ty 
+            else match ty with 
+            | Var {repres = Some t} -> eliminate_csp lv t
+            | Typeconstr(p, [t]) as ty when p = path_csp -> eliminate_csp lv t
+            | Typeconstr(p, tl) -> Typeconstr(p, List.map (eliminate_csp lv) tl)
+            | ty -> ty
+
         let rec infer_type lv env = function
             | IntE n -> int_type
             | StrE s -> string_type
@@ -334,8 +345,8 @@ and CoreTyping :
                 let ty = infer_type lv env t in
                 begin
                 match ty with
-                | Typeconstr(path, [t]) when path = path_code -> t
-                | Var {repres = Some(Typeconstr(path, [t])) } when path = path_code -> t
+                | Typeconstr(path, [t]) when path = path_code -> eliminate_csp lv t
+                | Var {repres = Some(Typeconstr(path, [t])) } when path = path_code -> eliminate_csp lv t
                 | _ -> error "run for non-code value"
                 end
             | DollarE(root, field) ->
