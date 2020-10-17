@@ -531,23 +531,29 @@ and ModTyping :
 
         (* Section 2.10: Strengthening of module types *)
 
-        let rec strengthen_modtype path mty =
-            match mty with
-            | Signature sg -> Signature(List.map (strengthen_spec path) sg)
+        let rec strengthen_modtype lv path = function
+            | Signature sg -> Signature(List.map (strengthen_spec lv path) sg)
             | FunS(id, arg, res) ->
-                FunS(id, arg, strengthen_modtype (AppP(path, IdentP id)) res)
-            | CodS mty -> CodS(strengthen_modtype path mty)
-        and strengthen_spec path item =
-            match item with
-            | ValS(id, vty) -> item
+                FunS(id, arg, strengthen_modtype lv (AppP(path, IdentP id)) res)
+            | CodS mty -> CodS(strengthen_modtype (lv+1) path mty)
+        and strengthen_spec lv path = function
+            | ValS(id, vty) as v -> v
             | TypeS(id, decl) ->
                 let m = match decl.manifest with
-                    | None -> Some(CT.deftype_of_path
-                                            (DotP(path, Ident.name id)) decl.kind)
+                    | None -> 
+                        let p = 
+                            if lv = 0
+                            then DotP(path, Ident.name id)
+                            else DollarP(path, Ident.name id) in
+                        Some(CT.deftype_of_path p decl.kind)
                     | Some ty -> Some ty 
                 in TypeS(id, {kind = decl.kind; manifest = m})
             | ModS(id, mty) ->
-                ModS(id, strengthen_modtype (DotP(path, Ident.name id)) mty)
+                let p = 
+                    if lv = 0
+                    then DotP(path, Ident.name id)
+                    else DollarP(path, Ident.name id) in
+                ModS(id, strengthen_modtype lv p mty)
 
         (* Section 5.5: Elimination of dependencies on a given identifier *)
 
@@ -615,7 +621,7 @@ and ModTyping :
 
         let rec type_module lv env = function
             | Longident path ->
-                strengthen_modtype path (Env.find_module path env)
+                strengthen_modtype lv path (Env.find_module path env)
             | Structure str ->
                 Signature(type_structure lv env [] str)
             | FunM(param, mty, body) ->
@@ -693,7 +699,7 @@ and ModTyping :
                 if lv > 0 then error "dollar access is allowed only at level 0"
                 else
                     let mty = Env.find_module_dollar root field env in
-                    CodS(strengthen_modtype root mty)
+                    CodS(strengthen_modtype lv root mty)
         and type_structure lv env seen = function
             | [] -> []
             | stritem :: rem ->
