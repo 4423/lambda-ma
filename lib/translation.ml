@@ -8,8 +8,16 @@ module TC = T.Core
 module SM = S.Mod
 module TM = T.Mod
 
-let rec f : S.Mod.mod_term -> T.Mod.mod_term =
-    fun modl -> mod_term 0 [] modl
+let rec f : S.Mod.toplevel list -> T.Mod.toplevel list =
+    fun toplevel_list ->
+        List.map toplevel toplevel_list
+
+and toplevel = function
+    | SM.SignatureDec (id, mty)  -> TM.SignatureDec (id, mod_type 0 mty)
+    | SM.StructureDec (id, modl) -> TM.StructureDec (id, mod_term 0 [] modl)
+    | SM.LetDec (id, term)       -> TM.LetDec (id, core_term 0 [] term)
+    | SM.LetRecDec (id, term)    -> TM.LetRecDec (id, core_term 0 [] term)
+    | SM.TypeDec (id, kind, dty) -> TM.TypeDec (id, core_kind 0 kind, def_type 0 dty)
 
 and path = function
     | S.IdentP id      -> T.IdentP id

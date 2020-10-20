@@ -105,7 +105,7 @@ let binop op arg1 arg2 =
 %type <Source.Syntax.Mod.definition> phrase
 
 %start main
-%type <Source.Syntax.Mod.mod_term> main
+%type <Source.Syntax.Mod.toplevel list> main
 
 %%
 
@@ -294,13 +294,31 @@ signature_item:
 
 /* Toplevel entry point */
 
+toplevel_list:
+  |                                     { [] }
+  | toplevel_list toplevel opt_semisemi { $2 :: $1}
+;
+opt_semisemi:
+  |          { () }
+  | SEMISEMI { () }
+;
+toplevel:
+  | MODULE TYPE CON EQUAL moduletype  { Mod.SignatureDec(Ident.create $3, $5)}
+  | MODULE CON COLON moduletype EQUAL modulexpr
+                    { Mod.StructureDec(Ident.create $2, Mod.Constraint($6, $4)) }
+  | MODULE CON EQUAL modulexpr        { Mod.StructureDec(Ident.create $2, $4) }
+  | LET VAR valbind                   { Mod.LetDec(Ident.create $2, $3) }
+  | LET REC VAR valbind               { Mod.LetRecDec(Ident.create $3, $4) }
+  | TYPE typedef                      { let (id, kind, def) = $2 in
+                                          Mod.TypeDec(Ident.create id, kind, def) }
+;
 phrase:
     structure_item SEMISEMI           { $1 }
   | EOF                               { raise End_of_file }
 ;
 
 main:
-  | structure EOF   { Structure (List.rev $1) }
+  | toplevel_list EOF { List.rev $1 }
 ;
 
 /* Sep. comp. entry point */

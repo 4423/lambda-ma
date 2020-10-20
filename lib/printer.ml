@@ -107,7 +107,7 @@ and print_signature_item = function
         print_string ":"; print_space(); print_modtype mty;
         close_box()
 
-let f: mod_type -> unit = function
-    | Signature(sg) -> 
+let f: specification list -> unit = 
+    fun sg -> 
         print_signature sg;
         Format.print_newline()

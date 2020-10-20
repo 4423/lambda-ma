@@ -463,6 +463,7 @@ and CoreTyping :
 and ModTyping :
     sig
         val type_module: level -> Env.t -> Mod.mod_term -> Mod.mod_type
+        val type_toplevel_list: Env.t -> Mod.toplevel list -> Mod.specification list
         (* 公開する必要ある？ しかも引数の個数が違う *)
         (* val type_definition: Env.t -> Mod.definition -> Mod.specification *)
         val modtype_match: Env.t -> Mod.mod_type -> Mod.mod_type -> unit
@@ -726,6 +727,47 @@ and ModTyping :
                 then error "kind mismatch in type definition";
                 (TypeS(id, {kind = kind; manifest = Some typ}),
                 Ident.name id :: seen)
+        and type_toplevel_list env ts =
+            let rec loop env seen = function
+                | [] -> []
+                | t :: rem ->
+                    let (ty, env', seen') = type_toplevel env seen t in
+                    ty :: loop env' seen' rem
+            in loop env [] ts
+        and type_toplevel env seen = function
+            | SignatureDec(id, mty) ->
+                if List.mem (Ident.name id) seen 
+                then error "repeated module name";
+                check_modtype env mty;
+                let env' = Env.add_module id mty env in
+                (ModS (id, mty), env', (Ident.name id :: seen))
+            | StructureDec(id, modl) ->
+                if List.mem (Ident.name id) seen
+                then error "repeated module name";
+                let mty = ModS(id, type_module 0 env modl) in
+                let env' = Env.add_spec mty env in
+                (mty, env', (Ident.name id :: seen))
+            | LetDec(id, term) ->
+                if List.mem (Ident.name id) seen
+                then error "repeated value name";
+                let vty = ValS(id, CT.type_term 0 env term) in
+                let env' = Env.add_spec vty env in
+                (vty, env', (Ident.name id :: seen))
+            | LetRecDec(id, term) ->
+                if List.mem (Ident.name id) seen
+                then error "repeated value name";
+                let vty = ValS(id, CT.type_term_rec 0 env id term) in
+                let env' = Env.add_spec vty env in
+                (vty, env', (Ident.name id :: seen))
+            | TypeDec(id, kind, typ) ->
+                if List.mem (Ident.name id) seen
+                then error "repeated type name";
+                CT.check_kind env kind;
+                if not (CT.kind_match env (CT.kind_deftype env typ) kind)
+                then error "kind mismatch in type definition";
+                let ty = TypeS(id, {kind = kind; manifest = Some typ}) in
+                let env' = Env.add_spec ty env in
+                (ty, env', (Ident.name id :: seen))
     end
 
 let init_env = ref Env.empty
@@ -780,5 +822,6 @@ let _ =
           body = arrow_type
                     (Typeconstr(path_star, [talpha; tbeta])) tbeta }
 
-let f : Mod.mod_term -> Mod.mod_type = 
-        fun modl -> ModTyping.type_module 0 !init_env modl
+let f : Mod.toplevel list -> Mod.specification list =
+    fun toplevel_list ->
+        ModTyping.type_toplevel_list !init_env toplevel_list

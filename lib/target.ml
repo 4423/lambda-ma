@@ -61,6 +61,12 @@ module Syntax = struct
                 | LetRecM of Ident.t * Core.term                (* let x = expr *)
                 | TypeM of Ident.t * Core.kind * Core.def_type  (* type t :: k = ty *)
                 | ModM of Ident.t * mod_term                    (* module X = mod *)
+            and toplevel =
+                | SignatureDec of Ident.t * mod_type
+                | StructureDec of Ident.t * mod_term
+                | LetDec of Ident.t * Core.term
+                | LetRecDec of Ident.t * Core.term
+                | TypeDec of Ident.t * Core.kind * Core.def_type
             and mod_type =
                 | Signature of signature                        (* sig ... end *)
                 | FunS of Ident.t * mod_type * mod_type         (* functor(X: mty) mty *)
@@ -89,10 +95,16 @@ module Print = struct
     let indent_decr () = indent := !indent - 2
     let i (s : string) = sprintf "%s%s" (String.make !indent ' ') s
 
-    let rec f: Syntax.Mod.mod_term -> string =
-        fun modl -> 
-            mod_term modl; (* dummy for baffling typing error *)
-            match modl with Structure str -> structure str
+    let rec f: Syntax.Mod.toplevel list -> string =
+        fun toplevel_list -> 
+            String.concat "\n" @@ List.map toplevel toplevel_list
+    
+    and toplevel = function
+        | SignatureDec (id, mty) -> sprintf "module type %s = %s" (Ident.name id) (mod_type mty)
+        | StructureDec (id, modl) -> sprintf "module %s = %s" (Ident.name id) (mod_term modl)
+        | LetDec (id, term) -> sprintf "let %s = %s" (Ident.name id) (core_term term)
+        | LetRecDec (id, term) -> sprintf "let rec %s = %s" (Ident.name id) (core_term term)
+        | TypeDec (id, kind, dty) -> sprintf "type %s = %s" (Ident.name id) (def_type dty)
 
     and path = function
         | IdentP id     -> Ident.name id
@@ -118,7 +130,7 @@ module Print = struct
         | LetM(id, term)       -> i @@ sprintf "let %s = %s" (Ident.name id) (core_term term)
         | LetRecM(id, term)    -> i @@ sprintf "let rec %s = %s" (Ident.name id) (core_term term)
         | TypeM(id, kind, dty) -> i @@ sprintf "type %s = %s" (Ident.name id) (def_type dty)
-        | ModM(id, modl)       -> i @@ sprintf "module %s = %s" (Ident.name id) (mod_term modl)        
+        | ModM(id, modl)       -> i @@ sprintf "module %s = %s" (Ident.name id) (mod_term modl)
 
     and mod_type = function
         | Signature sg        -> let s1 = "sig" in

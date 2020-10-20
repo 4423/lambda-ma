@@ -219,6 +219,23 @@ module ModScoping =
             | ModM(id, m) :: rem ->
                 let c = ModM(id, scope_module lv sc m) in
                 c :: scope_structure lv (Scope.enter_module id lv sc) rem
+        and scope_toplevels lv sc = function
+            | [] -> []
+            | SignatureDec(id, mty) :: rem ->
+                let t = SignatureDec(id, scope_modtype lv sc mty) in
+                t :: scope_toplevels lv (Scope.enter_module id lv sc) rem
+            | StructureDec(id, m) :: rem ->
+                let t = StructureDec(id, scope_module lv sc m) in
+                t :: scope_toplevels lv (Scope.enter_module id lv sc) rem
+            | LetDec(id, v) :: rem ->
+                let t = LetDec(id, CS.scope_term lv sc v) in
+                t :: scope_toplevels lv (Scope.enter_value id lv sc) rem
+            | LetRecDec(id, v) :: rem ->
+                let t = LetRecDec(id, CS.scope_term lv (Scope.enter_value id lv sc) v) in
+                t :: scope_toplevels lv (Scope.enter_value id lv sc) rem
+            | TypeDec(id, kind, dty) :: rem ->
+                let t = TypeDec(id, CS.scope_kind lv sc kind, CS.scope_deftype lv sc dty) in
+                t :: scope_toplevels lv (Scope.enter_type id lv sc) rem      
     end
 
 
@@ -236,5 +253,6 @@ let _ =
     List.iter enter_type Core.type_ids;
     List.iter enter_val Core.val_ids
 
-let f : Mod.mod_term -> Mod.mod_term = 
-        fun modl -> ModScoping.scope_module 0 !init_scope modl
+let f : Mod.toplevel list -> Mod.toplevel list =
+    fun toplevel_list ->
+        ModScoping.scope_toplevels 0 !init_scope toplevel_list

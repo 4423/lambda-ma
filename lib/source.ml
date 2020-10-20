@@ -201,6 +201,12 @@ module Syntax = struct
                 | LetRecM of Ident.t * Core.term            (* let x = expr *)
                 | TypeM of Ident.t * Core.kind * Core.def_type   (* type t :: k = ty *)
                 | ModM of Ident.t * mod_term                (* module X = mod *)
+            and toplevel =
+                | SignatureDec of Ident.t * mod_type
+                | StructureDec of Ident.t * mod_term
+                | LetDec of Ident.t * Core.term
+                | LetRecDec of Ident.t * Core.term
+                | TypeDec of Ident.t * Core.kind * Core.def_type
 
             let subst_typedecl decl sub =
                 { kind = Core.subst_kind decl.kind sub;
