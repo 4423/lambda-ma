@@ -98,6 +98,7 @@ let binop op arg1 arg2 =
 %right LESSGREATER LESS LESSEQUAL GREATER GREATEREQUAL
 %right PLUS MINUS
 %right STAR SLASH
+%left VAR CON STR INT TRUE FALSE UNIT LPAREN MCOD LMCOD MESC MRUN LCOD CODE ESC RUN DOLLAR
 
 %start implementation
 %type <Source.Syntax.Mod.mod_term> implementation
@@ -142,10 +143,6 @@ valexpr:
   | LET REC VAR valbind IN valexpr     { Core.LetRecE(Ident.create $3, $4, $6) }
   | IF valexpr THEN valexpr ELSE valexpr { Core.IfE($2, $4, $6) }
   | MATCH valexpr WITH clauselist     { Core.MatchE ($2, $4) }
-  | LCOD valexpr RCOD                 { Core.CodE($2) }
-  | ESC valexpr                       { Core.EscE($2) }
-  | RUN valexpr                       { Core.RunE($2) }
-  | path DOLLAR VAR                   { Core.DollarE($1, $3) }
 ;
 valexpr1:
     valexpr0 { $1 }
@@ -157,6 +154,10 @@ valexpr0:
   | STR                   { Core.StrE $1 }
   | TRUE                  { Core.BoolE(true) }
   | FALSE                 { Core.BoolE(false) }
+  | LCOD valexpr RCOD     { Core.CodE($2) }
+  | ESC valexpr0          { Core.EscE($2) }
+  | RUN valexpr0          { Core.RunE($2) }
+  | path DOLLAR VAR       { Core.DollarE($1, $3) }
   | LPAREN valexpr RPAREN { $2 }
 ;
 valbind:
@@ -197,6 +198,7 @@ simpletype:
   | path DOLLAR VAR             { Core.dollar_type 
                                     (Core.Typeconstr($1, [])) 
                                     (Core.Typeconstr(IdentP(Ident.create $3), [])) }
+  | LPAREN simpletype RPAREN    { $2 }
 ;
 simpletypelist:
     simpletype { [$1] }
