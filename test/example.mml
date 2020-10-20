@@ -171,3 +171,18 @@ module CCode = F2 (EmptyCode2)
 let e1 = .< (.~(ACode$f)) (.~(ACode$zero)) >.
 let e2 = .< (.~(ACode$f)) (.~(BCode$zero)) >.
 (* let e3 = .< (.~(ACode$f)) (.~(CCode$zero)) >. *)
+
+module type SIG1 = sig
+  type t
+  val f: t -> t
+end mcod
+module STR1 : SIG1 = .<< struct
+  type t = int
+  let f = fun n -> 0
+end >>.
+module F3 = functor (X : SIG1) ->
+  .<< struct
+    type t = .%X$t
+    let f = .~(X$f)
+  end >>. 
+module STR2 = F3 (STR1)

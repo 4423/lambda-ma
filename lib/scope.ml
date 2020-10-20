@@ -176,6 +176,7 @@ module ModScoping =
                             None -> None
                         | Some ty -> Some(CS.scope_deftype lv sc ty) }
         let rec scope_modtype lv sc = function
+            | LongidentS p -> LongidentS(Scope.module_path p lv sc)
             | Signature sg -> Signature(scope_signature lv sc sg)
             | FunS(id, arg, res) ->
                 FunS(id, scope_modtype lv sc arg,

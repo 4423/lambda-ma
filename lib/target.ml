@@ -68,6 +68,7 @@ module Syntax = struct
                 | LetRecDec of Ident.t * Core.term
                 | TypeDec of Ident.t * Core.kind * Core.def_type
             and mod_type =
+                | LongidentS of path                            (* X or X.Y.Z *)
                 | Signature of signature                        (* sig ... end *)
                 | FunS of Ident.t * mod_type * mod_type         (* functor(X: mty) mty *)
             and signature = specification list
@@ -133,6 +134,7 @@ module Print = struct
         | ModM(id, modl)       -> i @@ sprintf "module %s = %s" (Ident.name id) (mod_term modl)
 
     and mod_type = function
+        | LongidentS p        -> path p 
         | Signature sg        -> let s1 = "sig" in
                                  indent_incr ();
                                  let s2 = signature sg in

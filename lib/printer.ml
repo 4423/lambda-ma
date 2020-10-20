@@ -74,6 +74,8 @@ let print_typedecl id decl =
         print_deftype id dty
 
 let rec print_modtype = function
+    | LongidentS p ->
+        print_path p
     | Signature sg ->
         open_hvbox 2;
         print_string "sig";

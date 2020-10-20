@@ -43,7 +43,11 @@ module rec Env :
         let rec find path env =
             match path with
             | IdentP id ->
-                Ident.find id env
+                begin
+                match Ident.find id env with
+                | Module (Mod.LongidentS p) -> find p env
+                | mty -> mty
+                end
             | DotP(root, field) ->
                 begin
                 match find_module root env with
@@ -475,6 +479,10 @@ and ModTyping :
         
         let rec modtype_match env mty1 mty2 =
             match (mty1, mty2) with
+            | (LongidentS p, mty) ->
+                modtype_match env (Env.find_module p env) mty
+            | (mty, LongidentS p) ->
+                modtype_match env mty (Env.find_module p env)
             | (Signature sig1, Signature sig2) ->
                 let (paired_components, subst) =
                 pair_signature_components sig1 sig2 in
@@ -588,6 +596,7 @@ and ModTyping :
         (* Continuation of section 2.8: Type-checking the module language *)
 
         let rec check_modtype env = function
+            | LongidentS p -> check_modtype env (Env.find_module p env)
             | Signature sg -> check_signature env [] sg
             | FunS(param, arg, res) ->
                 check_modtype env arg;

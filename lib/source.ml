@@ -177,6 +177,7 @@ module Syntax = struct
                 { kind: Core.kind;
                     manifest: Core.def_type option }          (* abstract or manifest *)
             type mod_type =
+                | LongidentS of path                        (* X or X.Y.Z *)
                 | Signature of signature                    (* sig ... end *)
                 | FunS of Ident.t * mod_type * mod_type     (* functor(X: mty) mty *)
                 | CodS of mod_type                          (* mty mcod *)

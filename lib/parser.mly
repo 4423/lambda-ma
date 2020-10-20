@@ -276,7 +276,8 @@ opt_semi:
 /* Type expressions for the module language */
 
 moduletype:
-    SIG signature END               { Mod.Signature(List.rev $2) }
+  | path                            { Mod.LongidentS $1 }
+  | SIG signature END               { Mod.Signature(List.rev $2) }
   | FUNCTOR LPAREN CON COLON moduletype RPAREN ARROW moduletype
                                     { Mod.FunS(Ident.create $3, $5, $8) }
   | moduletype MCOD                 { Mod.CodS($1) }

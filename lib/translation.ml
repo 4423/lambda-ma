@@ -94,6 +94,7 @@ and runmod_component (root : T.path) = function
     | SM.ModS (id, mty) -> TM.ModM (id, runmod (TM.Longident (T.DotP (root, Ident.name id))) mty)
 
 and mod_type lv = function
+    | SM.LongidentS p -> TM.LongidentS (path p)
     | SM.Signature sg -> TM.Signature (signature lv sg)
     | SM.FunS (id, arg, res) ->
         if lv = 0 then TM.FunS (id, mod_type lv arg, mod_type lv res)
