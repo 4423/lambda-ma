@@ -815,7 +815,7 @@ let _ =
             enter_val id
             { quantif = [];
               body = arrow_type int_type (arrow_type int_type int_type)})
-        [ident_plus; ident_minus; ident_star; ident_slash]; 
+        [ident_plus; ident_minus; ident_mul; ident_slash]; 
     let alpha = CoreTyping.newvar() and beta = CoreTyping.newvar() in
     let talpha = Var alpha and tbeta = Var beta in
     enter_val ident_comma
