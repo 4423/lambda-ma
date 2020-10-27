@@ -171,7 +171,7 @@ module Print = struct
         | StrE s                  -> sprintf "\"%s\"" s
         | BoolE b                 -> if b then "true" else "false"
         | Longident p             -> path p
-        | FunE (id, term)         -> sprintf "fun %s -> %s" (Ident.name id) (core_term term)
+        | FunE (id, term)         -> sprintf "(fun %s -> %s)" (Ident.name id) (core_term term)
         | AppE (AppE (Longident (IdentP id), arg1), arg2) when is_binop id -> 
             sprintf "(%s %s %s)" (core_term arg1) (Ident.name id) (core_term arg2)
         | AppE (funct, arg)       -> sprintf "(%s %s)" (core_term funct) (core_term arg)
@@ -199,9 +199,9 @@ module Print = struct
         | Var tvar           -> type_variable tvar
         | Typeconstr (p, []) -> path p
         | Typeconstr (IdentP id, [t1;t2]) when Ident.name id = "->" ->
-            sprintf "%s -> %s" (core_type t1) (core_type t2)
+            sprintf "(%s) -> %s" (core_type t1) (core_type t2)
         | Typeconstr (IdentP id, [t1;t2]) when Ident.name id = "*" ->
-            sprintf "%s * %s" (core_type t1) (core_type t2)
+            sprintf "(%s) * %s" (core_type t1) (core_type t2)
         | Typeconstr (IdentP id, [t]) when Ident.name id = "code" ->
             sprintf "(%s) code" (core_type t)
         | Typeconstr (IdentP id, [t]) when Ident.name id = "list" ->
