@@ -30,10 +30,8 @@ module SuppressAddZeroOrMulZeroPECode (S: SYM_CODE with type obs_t = int)
   let int = genlet .< fun n1 -> (.~(S.int) n1, n1 = 0) >.
   let add = genlet .< fun n1 -> fun n2 ->
     match n1, n2 with
-      (n1, true), (n2, true) ->
-      (.~(S.int) 0, true)
-    | (n1, _), (n2, _) ->
-      (.~(S.add) n1 n2, false) >.
+      (n1, b1), (n2, b2) ->
+        if b1 && b2 then (.~(S.int) 0, true) else (.~(S.add) n1 n2, false) >.
 
   let sub = genlet .< fun n1 -> fun n2 ->
     match n1, n2 with
