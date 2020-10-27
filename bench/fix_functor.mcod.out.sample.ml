@@ -1,3 +1,5 @@
+let t1 = Sys.time () ;;
+
 module type SYM_CODE = sig
   type int_t
   type obs_t
@@ -49,3 +51,30 @@ module SuppressAddZeroOrMulZeroPECode (S: SYM_CODE with type obs_t = int)
     match f 0 with
     | (n, _) -> .~(S.observe) (fun _ -> n) >.
 end
+
+module X = SuppressAddZeroOrMulZeroPECode(ArithCode)
+
+module Fix = (struct
+  module X = X
+  type int_t = X.int_t
+  type obs_t = X.obs_t
+  type unit_t = X.unit_t
+  let int = Runcode.run (X.int)
+  let add = Runcode.run (X.add)
+  let sub = Runcode.run (X.sub)
+  let mul = Runcode.run (X.mul)
+  let div = Runcode.run (X.div)
+  let observe = Runcode.run (X.observe)
+end : sig
+  type int_t
+  type obs_t
+  type unit_t
+  val int: (int) -> int_t
+  val add: (int_t) -> (int_t) -> int_t
+  val sub: (int_t) -> (int_t) -> int_t
+  val mul: (int_t) -> (int_t) -> int_t
+  val div: (int_t) -> (int_t) -> int_t
+  val observe: ((unit_t) -> int_t) -> obs_t
+end);;
+
+Printf.printf "%f\n" (Sys.time () -. t1);;
