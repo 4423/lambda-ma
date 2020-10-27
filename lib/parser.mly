@@ -283,6 +283,7 @@ moduletype:
   | FUNCTOR LPAREN CON COLON moduletype RPAREN ARROW moduletype
                                     { Mod.FunS(Ident.create $3, $5, $8) }
   | moduletype MCOD                 { Mod.CodS($1) }
+  | moduletype WITH modconstraint   { Mod.SharingS($1, $3) }
   | LPAREN moduletype RPAREN        { $2 }
 ;
 signature:
@@ -293,6 +294,9 @@ signature_item:
     VALUE VAR valuedecl             { Mod.ValS(Ident.create $2, $3) }
   | TYPE typeinfo    { let (id, def) = $2 in Mod.TypeS(Ident.create id, def) }
   | MODULE CON COLON moduletype     { Mod.ModS(Ident.create $2, $4) }
+;
+modconstraint:
+  | TYPE typedef  { let (id, _, def) = $2 in Mod.TypeC(Ident.create id, def) }
 ;
 
 /* Toplevel entry point */

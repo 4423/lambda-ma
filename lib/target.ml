@@ -71,11 +71,14 @@ module Syntax = struct
                 | LongidentS of path                            (* X or X.Y.Z *)
                 | Signature of signature                        (* sig ... end *)
                 | FunS of Ident.t * mod_type * mod_type         (* functor(X: mty) mty *)
+                | SharingS of mod_type * mod_constraint         (* mty with constraint *)
             and signature = specification list
             and specification =
                 | ValS of Ident.t * Core.val_type               (* val x: ty *)
                 | TypeS of Ident.t * type_decl                  (* type t :: k [= ty] *)
                 | ModS of Ident.t * mod_type                    (* module X: mty *)
+            and mod_constraint =
+                | TypeC of Ident.t * Core.def_type              (* type t = ty *)
             and type_decl =
                 { kind: Core.kind;
                     manifest: Core.def_type option }            (* abstract or manifest *)
@@ -142,6 +145,7 @@ module Print = struct
                                  let s3 = i @@ "end" in
                                  s1^s2^s3
         | FunS (id, arg, res) -> sprintf "(functor (%s : %s) -> %s)" (Ident.name id) (mod_type arg) (mod_type res)
+        | SharingS (mty, c)   -> sprintf "%s with %s" (mod_type mty) (mod_constraint c)
     
     and signature sg =
         if List.length sg = 0 then " "
@@ -154,6 +158,9 @@ module Print = struct
                               end
         | ModS (id, mty)   -> i @@ sprintf "module %s: %s"(Ident.name id) (mod_type mty)
     
+    and mod_constraint = function
+        | TypeC (id, dty) -> sprintf "type %s = %s" (Ident.name id) (def_type dty)
+
     and type_decl decl =
         match decl.manifest with
         | None     -> None

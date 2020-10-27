@@ -102,6 +102,7 @@ and mod_type lv = function
     | SM.CodS mty -> 
         if lv = 0 then mod_type (lv+1) mty
         else error "mcod is allowed only at level 0"
+    | SM.SharingS (mty, c) -> TM.SharingS (mod_type lv mty, mod_constraint lv c)
 
 and signature lv sg =
     List.map (fun s -> specification lv s) sg
@@ -113,6 +114,9 @@ and specification lv = function
         TM.ValS (id, { quantif = vty'.quantif; body = TC.code_type vty'.body })
     | SM.TypeS (id, decl) -> TM.TypeS (id, type_decl lv decl)
     | SM.ModS (id, mty)   -> TM.ModS (id, mod_type lv mty)
+
+and mod_constraint lv = function
+    | SM.TypeC (id, dty) -> TM.TypeC (id, def_type lv dty)
 
 and type_decl lv decl =
     match decl.manifest with

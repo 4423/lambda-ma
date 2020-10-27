@@ -477,6 +477,20 @@ and ModTyping :
         module CT = CoreTyping
         open Mod
         
+        let rec constraint_modtype env id dty = function
+            | Signature sg ->
+                Signature (constraint_specification env id dty sg)
+            | LongidentS p ->
+                LongidentS p
+            | CodS mty ->
+                CodS (constraint_modtype env id dty mty)
+        and constraint_specification env id dty = function
+            | [] -> []
+            | TypeS(id1, decl) :: rem when (Ident.name id1) = (Ident.name id) ->
+                let s = TypeS(id1, { kind = decl.kind; manifest = Some dty }) in
+                s :: constraint_specification env id dty rem
+            | hd :: rem -> hd :: constraint_specification env id dty rem
+
         let rec modtype_match env mty1 mty2 =
             match (mty1, mty2) with
             | (LongidentS p, mty) ->
@@ -495,6 +509,10 @@ and ModTyping :
                 modtype_match (Env.add_module param2 arg2 env) res1' res2
             | (CodS mty1, CodS mty2) ->
                 modtype_match env mty1 mty2
+            | (SharingS(mty1, TypeC(id, dty)), mty2) ->
+                modtype_match env (constraint_modtype env id dty mty1) mty2
+            | (mty1, SharingS(mty2, TypeC(id, dty))) ->
+                modtype_match env mty1 (constraint_modtype env id dty mty2)
             | (_, _) ->
                 error "module type mismatch"
         and pair_signature_components sig1 sig2 =
@@ -545,6 +563,7 @@ and ModTyping :
             | FunS(id, arg, res) ->
                 FunS(id, arg, strengthen_modtype lv (AppP(path, IdentP id)) res)
             | CodS mty -> CodS(strengthen_modtype (lv+1) path mty)
+            | SharingS(mty, c) -> SharingS(strengthen_modtype lv path mty, c)
         and strengthen_spec lv path = function
             | ValS(id, vty) as v -> v
             | TypeS(id, decl) ->
@@ -572,6 +591,7 @@ and ModTyping :
                 FunS(id, nondep_modtype env param arg,
                         nondep_modtype (Env.add_module id arg env) param res)
             | CodS mty -> CodS(nondep_modtype env param mty)
+            | SharingS(mty, c) -> SharingS(nondep_modtype env param mty, c)
         and nondep_signature env param = function
             | [] -> []
             | item :: rem ->
@@ -602,6 +622,9 @@ and ModTyping :
                 check_modtype env arg;
                 check_modtype (Env.add_module param arg env) res
             | CodS mty -> check_modtype env mty
+            | SharingS(mty, c) ->
+                check_modtype env mty;
+                check_constraint env c
         and check_signature env seen = function
             | [] -> ()
             | ValS(id, vty) :: rem ->
@@ -628,6 +651,8 @@ and ModTyping :
                 check_modtype env mty;
                 check_signature (Env.add_module id mty env) 
                                 (Ident.name id :: seen) rem
+        and check_constraint env = function
+            | TypeC(id, dty) -> ()
 
         let rec type_module lv env = function
             | Longident path ->

@@ -182,6 +182,9 @@ module ModScoping =
                 FunS(id, scope_modtype lv sc arg,
                             scope_modtype lv (Scope.enter_module id lv sc) res)
             | CodS mty -> CodS(scope_modtype (lv+1) sc mty)
+            | SharingS(mty, c) -> 
+                let scoped_mty = scope_modtype lv sc mty in
+                SharingS(scoped_mty, scope_constraint lv sc scoped_mty c)
         and scope_signature lv sc = function
             | [] -> []
             | ValS(id, vty) :: rem ->
@@ -193,6 +196,19 @@ module ModScoping =
             | ModS(id, mty) :: rem ->
                 ModS(id, scope_modtype lv sc mty) ::
                 scope_signature lv (Scope.enter_module id lv sc) rem
+        and scope_constraint lv sc mty = function
+            | TypeC(id, dty) ->
+                (* let rec find_id_sig id = function
+                    | [] -> error "not found"
+                    | TypeS(id1, _) :: rem ->
+                        if (Ident.name id1) = (Ident.name id) then id1
+                        else find_id_sig id rem
+                    | _ :: rem -> find_id_sig id rem in
+                let rec find_id_mty id = function
+                    | Signature sg -> find_id_sig id sg
+                    | LongidentS p -> find_id_mty id (Scope.module_path p lv sc) in
+                    |  *)
+                TypeC(id, dty)
         let rec scope_module lv sc = function
             | Longident path -> Longident(Scope.module_path path lv sc)
             | Structure str -> Structure(scope_structure lv sc str)

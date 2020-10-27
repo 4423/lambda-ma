@@ -182,11 +182,14 @@ module Syntax = struct
                 | Signature of signature                    (* sig ... end *)
                 | FunS of Ident.t * mod_type * mod_type     (* functor(X: mty) mty *)
                 | CodS of mod_type                          (* mty mcod *)
+                | SharingS of mod_type * mod_constraint     (* mty with constraint *)
             and signature = specification list
             and specification =
                 | ValS of Ident.t * Core.val_type      (* val x: ty *)
                 | TypeS of Ident.t * type_decl           (* type t :: k [= ty] *)
                 | ModS of Ident.t * mod_type          (* module X: mty *)
+            and mod_constraint =
+                | TypeC of Ident.t * Core.def_type          (* type t = ty *)
             type mod_term =
                 | Longident of path                         (* X or X.Y.Z *)
                 | Structure of structure                    (* struct ... end *)
