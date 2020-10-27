@@ -8,7 +8,12 @@ echo -n '' > $RESULT_FILE
 # 3. time for runnning code [s]
 # 4. memory usage [KB]
 
-for i in `seq 0 100`
+filesize () {
+    size=$(wc -c < $1)
+    echo $size '1000.0' | awk '{printf "%f", $1 / $2}'
+}
+
+for i in `seq 0 0`
 do
     OUT_FILE=fix_functor.mcod.out.ml
     # add measurement code
@@ -22,6 +27,11 @@ do
     # run bench
     echo $i | tr '\n' '\t' >> $RESULT_FILE
     /usr/bin/time -f '%M' ./bench.out 2>&1 | tr '\n' '\t' >> $RESULT_FILE
+    # measure size of code
+    ./print_code.out | sed -e '1d' > code.dump
+    filesize code.dump >> $RESULT_FILE
+    rm code.dump
+    echo '' >> $RESULT_FILE
     # clean
     make clean
     rm $OUT_FILE
