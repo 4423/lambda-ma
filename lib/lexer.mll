@@ -103,6 +103,7 @@ rule token = parse
   | ".~"    { ESC }
   | ".%"    { CSP }
   | "Runcode.run" { RUN }
+  | "recapp"  { RECAPP }
 
   | var
             { let s = Lexing.lexeme lexbuf in

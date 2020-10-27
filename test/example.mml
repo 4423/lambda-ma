@@ -186,3 +186,7 @@ module F3 = functor (X : SIG1) ->
     let f = .~(X$f)
   end >>. 
 module STR2 = F3 (STR1)
+
+module RF = functor (X: sig end) -> struct end
+module RM = struct end
+module R1 = recapp 3 RF RM

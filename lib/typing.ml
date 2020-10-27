@@ -735,6 +735,8 @@ and ModTyping :
                 else
                     let mty = Env.find_module_dollar root field env in
                     CodS(strengthen_modtype lv root mty)
+            | RecAppM(n, funct, arg) ->
+                type_module lv env (AppM(funct, arg))
         and type_structure lv env seen = function
             | [] -> []
             | stritem :: rem ->

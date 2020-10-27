@@ -222,6 +222,7 @@ module ModScoping =
             | EscM(m) -> EscM(scope_module (lv-1) sc m)
             | RunM(m, mty) -> RunM(scope_module lv sc m, scope_modtype lv sc mty)
             | DollarM(path, field) -> DollarM(Scope.module_path path lv sc, field)
+            | RecAppM(n, m1, m2) -> RecAppM(n, scope_module lv sc m1, scope_module lv sc m2)
         and scope_structure lv sc = function
             | [] -> []
             | LetM(id, v) :: rem ->

@@ -47,6 +47,13 @@ and mod_term lv d = function
     | SM.DollarM (root, field) -> 
         if lv = 0 then TM.Longident (T.DotP ((path root), field))
         else error "dollar access is allowed only at level 0"
+    | SM.RecAppM (n, funct, arg) ->
+        let funct' = mod_term lv d funct in
+        let arg' = mod_term lv d arg in
+        let rec recapp i modl =
+            if i = 0 then modl
+            else recapp (i-1) (TM.AppM (funct', modl)) in
+        recapp n arg'
 
 and structure lv d str =
     definition lv d str

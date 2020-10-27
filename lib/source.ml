@@ -200,6 +200,7 @@ module Syntax = struct
                 | EscM of mod_term                          (* ~~mod *)
                 | RunM of mod_term * mod_type               (* Runmod(mod : mty) *)
                 | DollarM of path * string                  (* path$field *)
+                | RecAppM of int * mod_term * mod_term      (* recapp n mod1 mod2 *)
             and structure = definition list
             and definition =
                 | LetM of Ident.t * Core.term               (* let x = expr *)

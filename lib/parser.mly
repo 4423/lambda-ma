@@ -92,6 +92,7 @@ let binop op arg1 arg2 =
 %token ESC               // ".~"
 %token CSP               // ".%"
 %token RUN               // "Runcode.run"
+%token RECAPP            // "recapp"
 
 %right ARROW
 %right COMMA
@@ -256,6 +257,7 @@ modulexpr:
   | MESC modulexpr                    { Mod.EscM($2) }
   | MRUN LPAREN modulexpr COLON moduletype RPAREN { Mod.RunM($3, $5) }
   | path DOLLAR CON                   { Mod.DollarM($1, $3) }
+  | RECAPP INT modulexpr modulexpr    { Mod.RecAppM($2, $3, $4) }
 ;
 structure:
     /*nothing*/                       { [] }
