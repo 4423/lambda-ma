@@ -91,6 +91,9 @@ let rec print_modtype = function
         close_box()
     | CodS mty ->
         print_modtype mty; print_string " mcod"
+    | SharingS(mty, c) ->
+        print_modtype mty; print_string " with ";
+        print_constraint c
 and print_signature sg =
     List.iter (fun item -> print_space(); print_signature_item item) sg
 and print_signature_item = function
@@ -108,6 +111,9 @@ and print_signature_item = function
         print_string "module "; print_string(Ident.name id);
         print_string ":"; print_space(); print_modtype mty;
         close_box()
+and print_constraint = function
+    | TypeC(id, dty) ->
+        print_deftype id dty
 
 let f: specification list -> unit = 
     fun sg -> 
