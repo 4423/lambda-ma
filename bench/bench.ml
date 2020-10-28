@@ -2,17 +2,9 @@ let gc = Gc.get ()
 let _  = Gc.set { gc with Gc.minor_heap_size = 3200000;
                   space_overhead = max_int }
 
-let time f =
-  let t = Sys.time () in
-  ignore (f ()); (Sys.time () -. t)
-
 let bench f =
-  let rec loop i sum =
-    if i = 0 then sum
-    else loop (i - 1) (sum +. (time f)) in
-  let n = 10 in
-  let result = (loop n 0.0) /. float_of_int n in
-  Printf.printf "%f\n" result
+  let t = Sys.time () in
+  ignore (f ()); Printf.printf "%f" (Sys.time () -. t)
 
 let rec sequence n acc =
   if (n >= 0) then 

@@ -25,8 +25,8 @@ do
     # compile translated code
     make mcod
     # run bench
-    echo $i | tr '\n' '\t' >> $RESULT_FILE
-    /usr/bin/time -f '%M' ./bench.out 2>&1 | tr '\n' '\t' >> $RESULT_FILE
+    echo $i | tr '\n' ',' >> $RESULT_FILE
+    /usr/bin/time -f '%M' ./bench.out 2>&1 | tr '\n' ',' >> $RESULT_FILE
     # measure size of code
     ./print_code.out | sed -e '1d' > code.dump
     filesize code.dump >> $RESULT_FILE
