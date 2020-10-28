@@ -2,6 +2,7 @@
 
 # prepare result file
 RESULT_FILE=result.txt
+rm $RESULT_FILE
 echo -n '' > $RESULT_FILE
 # 1. num of functor apllication
 # 2. time for code generation [s]
@@ -13,7 +14,7 @@ filesize () {
     echo $size '1000.0' | awk '{printf "%f", $1 / $2}'
 }
 
-for i in `seq 0 0`
+for i in `seq 0 100`
 do
     OUT_FILE=fix_functor.mcod.out.ml
     # add measurement code
@@ -25,8 +26,8 @@ do
     # compile translated code
     make mcod
     # run bench
-    echo $i | tr '\n' ',' >> $RESULT_FILE
-    /usr/bin/time -f '%M' ./bench.out 2>&1 | tr '\n' ',' >> $RESULT_FILE
+    echo $i | tr '\n' '\t' >> $RESULT_FILE
+    /usr/bin/time -f '%M' ./bench.out 2>&1 | tr '\n' '\t' >> $RESULT_FILE
     # measure size of code
     ./print_code.out | sed -e '1d' > code.dump
     filesize code.dump >> $RESULT_FILE
