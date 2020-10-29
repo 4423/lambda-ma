@@ -28,7 +28,7 @@ module SuppressAddZeroOrMulZeroPECode
     type int_t = (.%S$int_t) * bool
     type obs_t = int
     type unit_t = int
-    let int = fun n1 -> (.~(S$int) n1, n1 == 0)
+    let int = fun n1 -> if n1 == 0 then (.~(S$int) n1, true) else (.~(S$int) n1, false)
     let add = fun n1 -> fun n2 ->
       match (n1, n2) with
         (x1, b1), (x2, b2) -> if (b1 && b2) then (.~(S$int) 0, true) else (.~(S$add) x1 x2, false)
