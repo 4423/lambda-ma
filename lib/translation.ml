@@ -90,9 +90,7 @@ and runmod (modl : TM.mod_term) (mty : SM.mod_type) =
     let mediator_id = Ident.create "X" in
     let mediator_mod = TM.ModM (mediator_id, modl) in
     let components = List.map (fun c -> runmod_component (T.IdentP mediator_id) c) sg in
-    let str = TM.Structure (mediator_mod :: components) in
-    let sg' = TM.Signature (signature 0 sg) in
-    TM.Constraint(str, sg')
+    TM.Structure (mediator_mod :: components)
 and runmod_component (root : T.path) = function
     | SM.ValS (id, vty) -> TM.LetM (id, TC.RunE (TC.Longident (T.DotP (root, Ident.name id))))
     | SM.TypeS (id, _)  -> TM.TypeM (id, 
