@@ -20,7 +20,7 @@ do
     # add measurement code
     echo 'let t1 = Sys.time () ;;' > $OUT_FILE
     # translate
-    cat fix_functor.mcod.ml | sed s/NUM_ITERATION/$i/g | ../src/metamo >> $OUT_FILE
+    cat fix_functor.mcod.ml | sed s/NUM_ITERATION/$i/g | ../src/lambda-ma >> $OUT_FILE
     # add measurement code
     echo ';;\nPrintf.printf "%f\\n" (Sys.time () -. t1);;' >> $OUT_FILE
     # compile translated code

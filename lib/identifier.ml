@@ -1,4 +1,4 @@
-(* module type IDENT =
+module type IDENT =
     sig
         type t
         val create: string -> t
@@ -10,8 +10,7 @@
         val find: t -> 'a tbl -> 'a
     end
 
-module Ident : IDENT = *)
-module Ident =
+module Ident : IDENT = 
     struct
         type t = {name: string; stamp: int}
         let currstamp = ref 0

@@ -17,17 +17,17 @@ let parse_file filepath =
                   msg (Lexing.lexeme_start lexbuf) in
       error s
 
-let main() =
+let usage () =
+  Printf.printf "usage: %s <file> \n" (Sys.argv.(0))
+
+let main () =
   try
-    let prog = parse_file "./test/example.mml" in
-    let scoped_prog = Scope.f prog in
-    let mty = Typing.f scoped_prog in
-    Printer.f mty;
-    let translated_prog = Translation.f scoped_prog in
-    print_string @@ Target.Print.f translated_prog;
-    exit 0
+    if (Array.length Sys.argv) <> 2 then usage ()
+    else
+      let path = Sys.argv.(1) in
+      print_string @@ Target.Print.f @@ Translation.f @@ Scope.f @@ parse_file path
   with
     Error s ->
       prerr_string "Error: "; prerr_string s; prerr_newline(); exit 2
 
-let _ = main()
+let _ = main ()

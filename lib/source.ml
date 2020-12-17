@@ -19,18 +19,15 @@ module Syntax = struct
             path_equal r1 r2 && field1 = field2
         | (_, _) -> false
 
-    (* Section 2.3: Substitutions *)
-
-    (* module type SUBST =
+    module type SUBST =
         sig
             type t
             val identity: t
             val add: Ident.t -> path -> t -> t
             val path: path -> t -> path
-        end *)
+        end
 
-    (* module Subst : SUBST = *)
-    module Subst =
+    module Subst : SUBST =
         struct
             type t = path Ident.tbl
             let identity = Ident.emptytbl
@@ -52,10 +49,10 @@ module Syntax = struct
                 | IntE of int                           (* integer constants *)
                 | StrE of string                        (* string constants *)
                 | BoolE of bool                         (* boolean constants *)
-                | Longident of path                      (* id or mod.mod...id *)
-                | FunE of Ident.t * term             (* fun id -> expr *)
+                | Longident of path                     (* id or mod.mod...id *)
+                | FunE of Ident.t * term                (* fun id -> expr *)
                 | AppE of term * term                   (* expr(expr) *)
-                | LetE of Ident.t * term * term           (* let id = expr in expr *)
+                | LetE of Ident.t * term * term         (* let id = expr in expr *)
                 | LetRecE of Ident.t * term * term      (* let rec id = expr in expr *)
                 | IfE of term * term * term             (* if expr then expr else expr *)
                 | MatchE of term * (pattern * term) list    (* match expr with pattern -> expr | ... *)
@@ -69,11 +66,11 @@ module Syntax = struct
                 | PairPat of pattern * pattern          (* pattern, pattern *)
                 | WildPat                               (* _ *)
             type simple_type =
-                | Var of type_variable                   (* 'a, 'b *)
-                | Typeconstr of path * simple_type list  (* constructed type *)
+                | Var of type_variable                  (* 'a, 'b *)
+                | Typeconstr of path * simple_type list (* constructed type *)
             and type_variable =
-                { mutable repres: simple_type option;    (* representative, for union-find *)
-                    mutable level: int }                 (* binding level, for generalization *)
+                { mutable repres: simple_type option;   (* representative, for union-find *)
+                    mutable level: int }                (* binding level, for generalization *)
 
             let ident_eq = Ident.create "=="
             let ident_neq = Ident.create "<>"

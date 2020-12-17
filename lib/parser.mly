@@ -8,8 +8,28 @@
 
 open Identifier
 open Source.Syntax
-open Typing
-open CoreTyping
+open Source.Syntax.Core
+
+let rec typerepr = function
+  | Var({repres = Some ty} as var) ->
+      let r = typerepr ty in var.repres <- Some r; r
+  | ty -> ty
+
+let current_level = ref 0
+let begin_def() = incr current_level
+let end_def() = decr current_level
+let newvar() = {repres = None; level = !current_level}
+
+let generalize ty =
+  let rec gen_vars vars ty =
+      match typerepr ty with
+      | Var v ->
+          if v.level > !current_level && not (List.memq v vars)
+          then v :: vars
+          else vars
+      | Typeconstr(path, tl) ->
+          List.fold_left gen_vars vars tl in
+  { quantif = gen_vars [] ty; body = ty }
 
 let variables = ref ([] : (string * Core.type_variable) list)
 
@@ -32,7 +52,7 @@ let binop op arg1 arg2 =
 %token <string> VAR      // "<identifier>"
 %token <string> CON      // "<identifier>"
 %token <string> STR      // "<string>"
-%token <int> INT
+%token <int> INT         // "<int>"
 
 %token ARROW
 %token COLON

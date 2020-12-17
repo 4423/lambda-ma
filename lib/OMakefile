@@ -2,7 +2,7 @@ if $(not $(OCAMLFIND_EXISTS))
     eprintln(You need to install ocamlfind and run "omake --configure")
     exit 1
 
-LIBRARY = metamo
+LIBRARY = lambda-ma
 
 SOURCE_ROOT_DIRECTORY = .
 

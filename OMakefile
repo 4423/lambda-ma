@@ -15,8 +15,8 @@ if $(and $(USE_METAOCAML) $(USE_OCAMLFIND))
     OCAMLOPT = -toolchain metaocaml ocamlopt
     export
 
-PROGRAM = metamo
-LIBRARY = metamo
+PROGRAM = lambda-ma
+LIBRARY = lambda-ma
 MAIN    = main
 
 PHONY: build clean
