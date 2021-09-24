@@ -72,7 +72,7 @@ module Syntax = struct
                 { mutable repres: simple_type option;   (* representative, for union-find *)
                     mutable level: int }                (* binding level, for generalization *)
 
-            let ident_eq = Ident.create "=="
+            let ident_eq = Ident.create "="
             let ident_neq = Ident.create "<>"
             let ident_lt = Ident.create "<"
             let ident_lteq = Ident.create "<="

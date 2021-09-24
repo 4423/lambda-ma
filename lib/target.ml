@@ -184,7 +184,7 @@ module Print = struct
         | RunE term               -> sprintf "Runcode.run (%s)" (core_term term)
         | GenletE term            -> sprintf "genlet %s" (core_term term)
     and is_binop id =
-        List.mem (Ident.name id) [","; "+"; "-"; "*"; "/"; "=="; "<>"; "<"; "<="; ">"; ">="; "&&"; "||"]
+        List.mem (Ident.name id) [","; "+"; "-"; "*"; "/"; "="; "<>"; "<"; "<="; ">"; ">="; "&&"; "||"]
     and pattern_clauses cs =
         String.concat " | " @@ List.map pattern_clause cs
     and pattern_clause (pat, term) =

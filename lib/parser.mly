@@ -151,7 +151,7 @@ valexpr:
   | valexpr MINUS valexpr             { binop "-" $1 $3 }
   | valexpr STAR valexpr              { binop "*" $1 $3 }
   | valexpr SLASH valexpr             { binop "/" $1 $3 }
-  | valexpr EQUALEQUAL valexpr        { binop "==" $1 $3 }
+  | valexpr EQUAL valexpr             { binop "=" $1 $3 }
   | valexpr LESSGREATER valexpr       { binop "<>" $1 $3 }
   | valexpr LESS valexpr              { binop "<" $1 $3 }
   | valexpr LESSEQUAL valexpr         { binop "<=" $1 $3 }
