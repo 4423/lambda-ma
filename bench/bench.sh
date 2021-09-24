@@ -14,13 +14,16 @@ filesize () {
     echo $size '1000.0' | awk '{printf "%f", $1 / $2}'
 }
 
-for i in `seq 0 100`
+for i in `seq 0 1`
 do
     OUT_FILE=fix_functor.mcod.out.ml
     # add measurement code
     echo 'let t1 = Sys.time () ;;' > $OUT_FILE
     # translate
-    cat fix_functor.mcod.ml | sed s/NUM_ITERATION/$i/g | ../src/lambda-ma >> $OUT_FILE
+    OUT_TMP_FILE=fix_functor.mcod.out.tmp.ml
+    cat fix_functor.mcod.ml | sed s/NUM_ITERATION/$i/g > $OUT_TMP_FILE
+    ../src/lambda-ma $OUT_TMP_FILE >> $OUT_FILE
+    rm $OUT_TMP_FILE
     # add measurement code
     echo ';;\nPrintf.printf "%f\\n" (Sys.time () -. t1);;' >> $OUT_FILE
     # compile translated code
