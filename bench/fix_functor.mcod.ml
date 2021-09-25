@@ -3,11 +3,11 @@ module type SYM_CODE = sig
   type obs_t
   type unit_t
   val int: int -> int_t
+  val var: int -> int_t
   val add: int_t -> int_t -> int_t
   val sub: int_t -> int_t -> int_t
   val mul: int_t -> int_t -> int_t
   val div: int_t -> int_t -> int_t
-  val var: int -> int_t
   val observe: (unit_t -> int_t) -> obs_t
 end mcod
 
@@ -16,14 +16,11 @@ module ArithCode: SYM_CODE with type obs_t = int = .<< struct
   type obs_t = int
   type unit_t = int
   let int = fun n1 -> n1
+  let var = fun _ -> 1
   let add = fun n1 -> fun n2 -> n1 + n2
   let sub = fun n1 -> fun n2 -> n1 - n2
   let mul = fun n1 -> fun n2 -> n1 * n2
   let div = fun n1 -> fun n2 -> n1 / n2
-  let var = fun n1 -> 
-    let var_value = 10 in
-    let rec pow x y = if y = 0 then 1 else x * (pow x (y - 1)) in 
-    pow var_value n1
   let observe = fun f -> f 0
 end >>.
 
@@ -34,27 +31,22 @@ module SuppressAddZeroOrMulZeroPECode
     type obs_t = int
     type unit_t = int
     let int = fun n1 -> if n1 = 0 then (.~(S$int) 0, true) else (.~(S$int) n1, false)
+    let var = fun n1 -> (.~(S$var) n1, false)
     let add = fun n1 -> fun n2 ->
       match (n1, n2) with
         (x1, b1), (x2, b2) -> if (b1 && b2) then (.~(S$int) 0, true)
                               else if b1 then (x2, false)
                               else if b2 then (x1, false)
                               else (.~(S$add) x1 x2, false)
-
     let sub = fun n1 -> fun n2 ->
       match (n1, n2) with
         (x1, _), (x2, _) -> if x1 = x2 then (.~(S$int) 0, true) else (.~(S$sub) x1 x2, false)
-
     let mul = fun n1 -> fun n2 ->
       match (n1, n2) with
         (x1, b1), (x2, b2) -> if (b1 || b2) then (.~(S$int) 0, true) else (.~(S$mul) x1 x2, false)
-
     let div = fun n1 -> fun n2 ->
       match (n1, n2) with
         (x1, b1), (x2, _) -> if b1 then (.~(S$int) 0, true) else (.~(S$div) x1 x2, false)
-
-    let var = fun n1 -> (.~(S$var) n1, false)
-
     let observe = fun f -> 
       match f 0 with
         (n, _) -> .~(S$observe) (fun _ -> n)
@@ -69,10 +61,10 @@ module Fix = Runmod(X :
     type obs_t
     type unit_t
     val int: int -> int_t
+    val var: int -> int_t
     val add: int_t -> int_t -> int_t
     val sub: int_t -> int_t -> int_t
     val mul: int_t -> int_t -> int_t
     val div: int_t -> int_t -> int_t
-    val var: int -> int_t
     val observe: (unit_t -> int_t) -> obs_t
   end)
