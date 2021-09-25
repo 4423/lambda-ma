@@ -5,6 +5,8 @@ filesize () {
     echo $size '1000.0' | awk '{printf "%f", $1 / $2}'
 }
 
+rm result.txt
+
 for n in `seq 0 10`
 do
     # prepare result file
@@ -14,8 +16,7 @@ do
     # 1. num of functor apllication
     # 2. time of code generation [s]
     # 3. execution time of generated code [s]
-    # 4. memory usage [KB]
-    # 5. code size [KB]
+    # 4. code size [KB]
 
     for i in `seq 0 100`
     do
@@ -46,3 +47,6 @@ do
         rm $OUT_FILE
     done
 done
+
+# calculate the average and output as result.txt
+python3 avg.py
