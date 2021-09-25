@@ -4,6 +4,7 @@ open Fix_functor
 
 let print c = Codelib.print_code Format.std_formatter c ;;
 print X.int ;;
+print X.var ;;
 print X.add ;;
 print X.sub ;;
 print X.mul ;;
