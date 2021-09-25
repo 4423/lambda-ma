@@ -12,9 +12,10 @@ do
     rm $RESULT_FILE
     echo -n '' > $RESULT_FILE
     # 1. num of functor apllication
-    # 2. time for code generation [s]
-    # 3. time for runnning code [s]
+    # 2. time of code generation [s]
+    # 3. execution time of generated code [s]
     # 4. memory usage [KB]
+    # 5. code size [KB]
 
     for i in `seq 0 100`
     do
